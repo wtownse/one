@@ -27,6 +27,7 @@ require 'mapper'
 require 'raw'
 require 'qcow2'
 require 'rbd'
+require 'lvm'
 
 # This class interacts with the LXD container on REST level
 class Container
@@ -182,10 +183,10 @@ class Container
     # Runs command inside container using REST. Execution isn't managed.
     # @param full command [String] to execute
     def exec_rest(command)
-        body = { 'command'              => command.split(' '),
-                 'wait-for-websocket'   => false,
-                 'record-output'        => false,
-                 'interactive'          => false }
+        body = { 'command' => command.split(' '),
+                 'wait-for-websocket' => false,
+                 'record-output' => false,
+                 'interactive' => false }
 
         @client.post("#{CONTAINERS}/#{name}/exec", body)
     end
@@ -234,7 +235,7 @@ class Container
             else
                 stop
             end
-        rescue => exception
+        rescue StandardError => exception
             OpenNebula.log_error exception
 
             real_status = 'Unknown'
@@ -519,39 +520,50 @@ class Container
     #  so new mappers does not need to modified source code
     def new_disk_mapper(disk)
         case disk['TYPE']
-        when 'FILE', 'BLOCK'
-
-            ds = @one.disk_source(disk)
-
-            rc, out, err = Command.execute("#{Mapper::COMMANDS[:file]} #{ds}", false)
-
-            unless rc.zero?
-                OpenNebula.log_error("#{__method__} #{err}")
-                return
-            end
-
-            case out
-            when /.*QEMU QCOW.*/
-                OpenNebula.log "Using qcow2 mapper for #{ds}"
-                Qcow2Mapper.new
-            when /.*filesystem.*/
-                OpenNebula.log "Using raw filesystem mapper for #{ds}"
-                FSRawMapper.new
-            when /.*boot sector.*/
-                OpenNebula.log "Using raw disk mapper for #{ds}"
-                DiskRawMapper.new
-            else
-                OpenNebula.log("Unknown #{out} image format, \
-                    trying raw filesystem mapper")
-                FSRawMapper.new
-            end
+        when 'FILE'
+            file_mappers(disk)
         when 'RBD'
-            OpenNebula.log "Using rbd disk mapper for #{ds}"
+            OpenNebula.log "Using rbd disk mapper for #{file}"
             RBDMapper.new(disk)
+        when 'BLOCK'
+            file_mappers(disk) unless disk['TM_MAD'] == 'fs_lvm'
+            LVMapper.new
         else
             OpenNebula.log_error("disk #{disk['DISK_ID']} type #{disk['TYPE']}"\
                 ' not supported')
             nil
+        end
+    end
+
+    def disk_format(file)
+        cmd = "#{Mapper::COMMANDS[:file]} #{file}", false
+        rc, out, err = Command.execute(cmd)
+
+        unless rc.zero?
+            OpenNebula.log_error("#{__method__} #{err}")
+            return
+        end
+
+        out
+    end
+
+    def file_mappers(disk)
+        file = @one.disk_source(disk)
+
+        case disk_format(file)
+        when /.*QEMU QCOW.*/
+            OpenNebula.log "Using qcow2 mapper for #{file}"
+            Qcow2Mapper.new
+        when /.*filesystem.*/
+            OpenNebula.log "Using raw filesystem mapper for #{file}"
+            FSRawMapper.new
+        when /.*boot sector.*/
+            OpenNebula.log "Using raw disk mapper for #{file}"
+            DiskRawMapper.new
+        else
+            OpenNebula.log("Unknown #{out} image format, \
+                trying raw filesystem mapper")
+            FSRawMapper.new
         end
     end
 

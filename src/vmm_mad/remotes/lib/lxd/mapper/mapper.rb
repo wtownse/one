@@ -53,24 +53,24 @@ class Mapper
     #   as root
     #---------------------------------------------------------------------------
     COMMANDS = {
-        :lsblk      => 'sudo lsblk',
-        :losetup    => 'sudo losetup',
-        :mount      => 'sudo mount',
-        :umount     => 'sudo umount',
-        :kpartx     => 'sudo kpartx',
-        :nbd        => 'sudo -u root -g oneadmin qemu-nbd',
-        :su_mkdir   => 'sudo mkdir -p',
-        :mkdir      => 'mkdir -p',
-        :catfstab   => 'sudo catfstab',
-        :cat        => 'cat',
-        :file       => 'file -L -s',
-        :blkid      => 'sudo blkid',
-        :e2fsck     => 'sudo e2fsck',
-        :resize2fs  => 'sudo resize2fs',
+        :lsblk => 'sudo lsblk',
+        :losetup => 'sudo losetup',
+        :mount => 'sudo mount',
+        :umount => 'sudo umount',
+        :kpartx => 'sudo kpartx',
+        :nbd => 'sudo -u root -g oneadmin qemu-nbd',
+        :su_mkdir => 'sudo mkdir -p',
+        :mkdir => 'mkdir -p',
+        :catfstab => 'sudo catfstab',
+        :cat => 'cat',
+        :file => 'file -L -s',
+        :blkid => 'sudo blkid',
+        :e2fsck => 'sudo e2fsck',
+        :resize2fs => 'sudo resize2fs',
         :xfs_growfs => 'sudo xfs_growfs',
-        :rbd        => 'sudo rbd-nbd --id',
-        :xfs_admin  => 'sudo xfs_admin',
-        :tune2fs    => 'sudo tune2fs'
+        :rbd => 'sudo rbd-nbd --id',
+        :xfs_admin => 'sudo xfs_admin',
+        :tune2fs => 'sudo tune2fs'
     }
 
     #---------------------------------------------------------------------------
@@ -157,49 +157,17 @@ class Mapper
 
         return false unless sys_parts
 
-        partitions = []
-        device = ''
+        real_path = realpath(directory, one_vm.sysds_path)
 
-        real_path = directory
-
-        is_rootfs = real_path =~ %r{.*/rootfs}
-        is_shared_ds = File.symlink?(one_vm.sysds_path)
-
-        real_path = File.realpath(directory) if !is_rootfs && is_shared_ds
-
-        sys_parts.each {|d|
-            if d['mountpoint'] == real_path
-                partitions = [d]
-                device     = d['path']
-                break
-            end
-
-            if d['children']
-                d['children'].each {|c|
-                    next unless c['mountpoint'] == real_path
-
-                    partitions = d['children']
-                    device     = d['path']
-                    break
-                }
-            end
-
-            break unless partitions.empty?
-        }
-
-        partitions.delete_if {|p| !p['mountpoint'] }
-
-        partitions.sort! {|a, b|
-            b['mountpoint'].length <=> a['mountpoint'].length
-        }
+        device, partitions = parse_blocks(sys_parts, real_path)
 
         if device.empty?
-            OpenNebula.log_error("Failed to detect block device from #{directory}")
+            OpenNebula.log_error('Failed to detect block device from '\
+                     "#{directory}")
             return true
         end
 
         return unless umount(partitions)
-
         return unless do_unmap(device, one_vm, disk, real_path)
 
         true
@@ -214,11 +182,11 @@ class Mapper
     # Umounts partitions
     # @param partitions [Array] with partition device names
     def umount(partitions)
-        partitions.each {|p|
+        partitions.each do |p|
             next unless p['mountpoint']
 
             return nil unless umount_dev(p['path'])
-        }
+        end
     end
 
     # Mounts partitions
@@ -308,21 +276,21 @@ class Mapper
                     partitions = [partitions]
                 end
 
-                partitions.delete_if {|p|
+                partitions.delete_if do |p|
                     p['fstype'].casecmp('swap').zero? if p['fstype']
-                }
+                end
             end
-        rescue
+        rescue StandardError
             OpenNebula.log_error("lsblk: error parsing lsblk -OJ #{device}")
             return
         end
 
         # Fix for lsblk paths for version < 2.33
-        partitions.each {|p|
+        partitions.each do |p|
             lsblk_path(p)
 
             p['children'].each {|q| lsblk_path(q) } if p['children']
-        }
+        end
 
         partitions
     end
@@ -359,12 +327,12 @@ class Mapper
     # Runs kpartx vs a device with required flags as arguments
     def action_parts(device, action)
         cmd = "#{COMMANDS[:kpartx]} #{action} #{device}"
-        rc, _out, err = Command.execute(cmd, false)
+        rc, out, err = Command.execute(cmd, false)
 
-        return true if rc.zero?
+        return out if rc.zero?
 
         OpenNebula.log_error("#{__method__}: #{err}")
-        false
+        nil
     end
 
     def mount_on?(path)
@@ -399,7 +367,7 @@ class Mapper
         partitions.each do |p|
             OpenNebula.log("Looking for fstab on #{p['path']}")
 
-            rc = mount_dev(p['path'], path)
+            rc = mount_dev(device_path(p), path)
             next unless rc
 
             bin = COMMANDS[:catfstab]
@@ -446,13 +414,13 @@ class Mapper
 
             next if %w[/ swap].include?(mount_point)
 
-            partitions.each {|p|
+            partitions.each do |p|
                 next if p[key] != value
 
                 return false unless mount_dev(p['path'], path + mount_point)
 
                 break
-            }
+            end
         end
 
         true
@@ -536,12 +504,12 @@ class Mapper
 
         fstype = ''
 
-        o.each_line {|l|
+        o.each_line do |l|
             next unless (m = l.match(/TYPE=(.*)/))
 
             fstype = m[1]
             break
-        }
+        end
 
         fstype
     end
@@ -550,6 +518,79 @@ class Mapper
     def update_partable(dev)
         cmd = "#{COMMANDS[:mount]} --fake #{dev} /mnt"
         Command.execute(cmd, false)
+    end
+
+    # Get real path of the mountpoint
+    def realpath(directory, sys_ds_path)
+        real_path = directory
+
+        is_rootfs = real_path =~ %r{.*/rootfs}
+        is_shared_ds = File.symlink?(sys_ds_path)
+
+        real_path = File.realpath(directory) if !is_rootfs && is_shared_ds
+        real_path
+    end
+
+    def parse_blocks(blockdevices, real_path)
+        partitions = []
+        device = ''
+
+        blockdevices.each do |block|
+            # Process table-partitionless devices
+            if block['mountpoint'] == real_path
+                partitions = [block]
+                device     = block['path']
+                break
+            end
+
+            #  Process devices with a partition table
+            if block['children']
+                device, partitions = scan_child(block, real_path)
+                break unless partitions.empty?
+            end
+
+            # Process logical volumes
+            if block['fstype'] == 'LVM2_member'
+                block['children'].each do |child|
+                    next unless child['children']
+
+                    device, partitions = scan_child(child, real_path)
+
+                    next if device.empty?
+
+                    partitions.each {|p| p['path'] = "/dev/mapper/#{p['name']}" }
+                    break
+                end
+            end
+
+            break unless partitions.empty?
+        end
+
+        partitions.delete_if {|p| !p['mountpoint'] }
+        partitions.sort! do |a, b|
+            b['mountpoint'].length <=> a['mountpoint'].length
+        end
+
+        [device, partitions]
+    end
+
+    def scan_child(block, real_path)
+        partitions = ''
+        device = ''
+
+        block['children'].each do |child|
+            next unless child['mountpoint'] == real_path
+
+            partitions = block['children']
+            device     = device_path(block)
+            break
+        end
+
+        [device, partitions]
+    end
+
+    def device_path(block)
+        block['path'] || "/dev/mapper/#{block['name']}"
     end
 
 end

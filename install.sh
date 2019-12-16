@@ -900,6 +900,7 @@ VMM_EXEC_LXD_LIB="src/vmm_mad/remotes/lib/lxd/opennebula_vm.rb \
                 src/vmm_mad/remotes/lib/lxd/mapper/qcow2.rb \
                 src/vmm_mad/remotes/lib/lxd/mapper/raw.rb \
                 src/vmm_mad/remotes/lib/lxd/mapper/rbd.rb \
+                src/vmm_mad/remotes/lib/lxd/mapper/lvm.rb \
                 src/vmm_mad/remotes/lib/lxd/client.rb \
                 src/vmm_mad/remotes/lib/lxd/command.rb \
                 src/vmm_mad/remotes/lib/lxd/container.rb"
