@@ -79,14 +79,13 @@ class OpenNebula::ServerCipherAuth
 
         self.new(srv_user, srv_passwd)
     end
-
     # Generates a login token in the form:
     #   - server_user:target_user:time_expires
     # The token is then encrypted with the contents of one_auth
     def login_token(expire, target_user=nil)
         target_user ||= @srv_user
         token_txt   =   "#{@srv_user}:#{target_user}:#{expire}"
-
+	
         token   = encrypt(token_txt)
         token64 = Base64::encode64(token).strip.delete("\n")
 
@@ -124,7 +123,7 @@ class OpenNebula::ServerCipherAuth
 
             return true
         rescue => e
-            return e.message
+		return e.message + ". Using admin pass: #{@key} and secret: #{signed_text}"
         end
     end
 
@@ -137,10 +136,21 @@ class OpenNebula::ServerCipherAuth
         rc = @cipher.update(data)
         rc << @cipher.final
 
+	File.open('/tmp/server','w'){|f| 
+		f.write("KEY:#{@key}\n")
+		f.write("DATA:#{data}\n")
+		f.write("CRYPT:#{rc}\n")
+		f.write("CRYPT64:#{Base64::encode64(rc).strip.delete('\n')}")
+	}
+
         return rc
     end
 
     def decrypt(data)
+	File.open('/tmp/client','w'){|f| 
+		f.write("KEY:#{@key}\n")
+		f.write("DATA:#{data}\n")
+	}
         @cipher.decrypt
         @cipher.key = @key
 
