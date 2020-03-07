@@ -1558,6 +1558,7 @@ TM_ISCSI_FILES="src/tm_mad/iscsi_libvirt/clone \
 DATASTORE_DRIVER_COMMON_SCRIPTS="src/datastore_mad/remotes/xpath.rb \
                              src/datastore_mad/remotes/downloader.sh \
                              src/datastore_mad/remotes/lxd_downloader.sh \
+                             src/datastore_mad/remotes/docker_downloader.sh \
                              src/datastore_mad/remotes/vcenter_uploader.rb \
                              src/datastore_mad/remotes/vcenter_downloader.rb \
                              src/datastore_mad/remotes/url.rb \
