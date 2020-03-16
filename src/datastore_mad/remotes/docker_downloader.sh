@@ -225,7 +225,7 @@ esac
 #-------------------------------------------------------------------------------
 sudo mount $img_raw $dockerdir/mnt > /dev/null 2>&1
 sudo chmod o+w $dockerdir/mnt
-tar xpf $tarball -C $dockerdir/mnt > /dev/null 2>&1
+sudo tar xpf $tarball -C $dockerdir/mnt > /dev/null 2>&1
 
 sync
 
