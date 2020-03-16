@@ -161,7 +161,8 @@ alpine)
     contexturl=$CONTEXT_URL/v$selected_tag/one-context-$selected_tag-r1.apk
     commands=$(cat <<EOC
 COPY context.apk /root/context.apk
-RUN apk add openrc \
+RUN apk add coreutils \
+            openrc \
             udev \
             openssh
 
@@ -171,7 +172,6 @@ RUN rc-update add sshd && \
 
 RUN apk add --allow-untrusted /root/context.apk
 RUN rm /root/context.apk
-
 EOC
 )
     ;;
