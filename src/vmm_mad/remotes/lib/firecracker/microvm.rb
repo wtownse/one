@@ -187,11 +187,8 @@ class MicroVM
 
         # TODO: make screen oprions configurable to support different versions
         # TODO: make screen configurable to enable use of tmux etc..
-        # TODO: make log file from screen configurable (not working on CentOS 7)
         if @one.vnc?
-            cmd << 'screen -L'
-            cmd << " -Logfile /tmp/fc-log-#{@one.vm_id}"
-            cmd << " -dmS #{@one.vm_name} "
+            cmd << "screen -dmS #{@one.vm_name} "
         end
 
         # Build jailer command params
