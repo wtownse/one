@@ -74,6 +74,14 @@ class MicroVM
         end
     end
 
+    def gen_logs_files
+        path_log = "#{vm_location}/#{@fc['deployment-file']['logger']['log_fifo']}"
+        path_metrics = "#{vm_location}/#{@fc['deployment-file']['logger']['metrics_fifo']}"
+
+        File.open(path_log, 'w') {}
+        File.open(path_metrics, 'w') {}
+    end
+
     def vm_location
         "#{@one.sysds_path}/#{@one.vm_id}"
     end

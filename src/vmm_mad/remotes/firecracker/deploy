@@ -35,6 +35,7 @@ xml = STDIN.read
 microvm = MicroVM.new_from_xml(xml, nil)
 
 microvm.gen_deployment_file
+microvm.gen_logs_files
 
 # Create microVM
 rc = microvm.create
