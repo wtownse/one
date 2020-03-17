@@ -1,79 +1,83 @@
 #!/bin/bash
 
-# -------------------------------------------------------------------------- #
-# Copyright 2002-2019, OpenNebula Project, OpenNebula Systems                #
-#                                                                            #
-# Licensed under the Apache License, Version 2.0 (the "License"); you may    #
-# not use this file except in compliance with the License. You may obtain    #
-# a copy of the License at                                                   #
-#                                                                            #
-# http://www.apache.org/licenses/LICENSE-2.0                                 #
-#                                                                            #
-# Unless required by applicable law or agreed to in writing, software        #
-# distributed under the License is distributed on an "AS IS" BASIS,          #
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   #
-# See the License for the specific language governing permissions and        #
-# limitations under the License.                                             #
-#--------------------------------------------------------------------------- #
+# Simple conversion script of ISO 9660 image into image based
+# on ext2/3/4 filesytem. Completely unprivileged, without needing
+# to mount both images. Free to use under Apache 2.0 License.
+# 2020, Vlastimil Holer <vlastimil.holer@gmail.com>
 
-function clean () {
-    # Clean temporary directories
-    umount "$MAP_PATH/fs"
-    rm -rf "$MAP_PATH"
+set -e -o pipefail
+
+TYPE=${TYPE:-ext2}
+LABEL=${LABEL:-CONTEXT}
+DISK_SRC=$1
+DISK_DST=${2:-${DISK_SRC}.${TYPE}}
+
+if [ -z "${DISK_SRC}" ]; then
+    echo "SYNTAX: $0 <source image> [<dest. image>]" >&2
+    exit 1
+fi
+
+if ! [ -f "${DISK_SRC}" ]; then
+    echo "ERROR: File '${DISK_SRC}' not found" >&2
+    exit 1
+fi
+
+###
+
+NEW_EXTR=$(mktemp "${DISK_SRC}.XXXXXX" -d)
+NEW_DISK=$(mktemp "${DISK_SRC}.XXXXXX")
+NEW_DBFS=$(mktemp "${DISK_SRC}.XXXXXX")
+chmod go-rwx "${NEW_EXTR}" "${NEW_DISK}" "${NEW_DBFS}"
+
+trap 'rm -rf "${NEW_EXTR}" "${NEW_DISK}" "${NEW_DBFS}"' EXIT TERM INT HUP
+
+debugfs_do()
+{
+    echo "${1}" >> "${NEW_DBFS}"
 }
 
-# exit when any command fails
-set -eE
+###
 
-SYSDS_PATH=""
-ROOTFS_ID=""
-VM_ID=""
+# unpack ISO file
+bsdtar -xf "${DISK_SRC}" -C "${NEW_EXTR}"
+find "${NEW_EXTR}" -mindepth 1 -exec chmod u+w,go+r {} \;
 
-while getopts ":s:c:r:v:" opt; do
-    case $opt in
-        s) SYSDS_PATH="$OPTARG" ;;
-        c) CONTEXT_ID=$OPTARG ;;
-        r) ROOTFS_ID="$OPTARG" ;;
-        v) VM_ID="$OPTARG" ;;
-    esac
-done
+# create image with extX filesystem
+NEW_SIZE=$(du -sk "${NEW_EXTR}" 2>/dev/null | cut -f1)
+dd if=/dev/zero of="${NEW_DISK}" bs=1024 seek="$((NEW_SIZE + 1000))" count=1 status=none
+mkfs -q -t "${TYPE}" -L "${LABEL}" "${NEW_DISK}"
+tune2fs -c0 -i0 -r0 -O read-only "${NEW_DISK}" >/dev/null
 
-shift $(($OPTIND - 1))
+# generate debugfs script
+while IFS= read -r -d $'\0' F; do
+    REL_F=${F#${NEW_EXTR}/}
+    DN=$(dirname  "${REL_F}")
+    BN=$(basename "${REL_F}")
 
+    debugfs_do "cd /${DN}"
 
-if [ -z "$SYSDS_PATH" ] || [ -z "$CONTEXT_ID" ] || [ -z "$ROOTFS_ID" ] || [ -z "$VM_ID" ]; then
-    exit -1
+    if [ -f "${F}" ]; then
+        debugfs_do "write ${F} ${BN}"
+    elif [ -d "${F}" ]; then
+        debugfs_do "mkdir ${BN}"
+    else
+        echo "ERROR: Unsupported file type of '${REL_F}'" >&2
+        exit 1
+    fi
+done < <(find "${NEW_EXTR}" -mindepth 1 -print0)
+
+# run debugfs and apply prepared script
+OUT=$(debugfs -w "${NEW_DISK}" -f "${NEW_DBFS}" 2>&1 >/dev/null)
+
+# error in debugfs run is mainly detected by nearly empty output,
+# which has only debugfs welcome banner and no other messages
+if [ "$(echo "${OUT}" | wc -l)" -ne 1 ] || ! [[ "${OUT}" =~ ^debugfs ]]; then
+    echo "ERROR: Failed to convert ISO into ${TYPE} image due to error:" >&2
+    echo "${OUT}" >&2
+    exit 1
 fi
 
-rgx_num="^[0-9]+$"
-if ! [[ $CONTEXT_ID =~ $rgx_num ]] || ! [[ $ROOTFS_ID =~ $rgx_num ]] || ! [[ $VM_ID =~ $rgx_num ]]; then
-    exit -1
-fi
-
-VM_LOCATION="$SYSDS_PATH/$VM_ID"
-
-MAP_PATH="$VM_LOCATION/map_context"
-CONTEXT_PATH="$VM_LOCATION/disk.$CONTEXT_ID"
-ROOTFS_PATH="$VM_LOCATION/disk.$ROOTFS_ID"
-
-trap clean ERR
-
-# Create temporary directories
-mkdir "$MAP_PATH"
-mkdir "$MAP_PATH/context"
-mkdir "$MAP_PATH/fs"
-
-# Mount rootfs
-mount "$ROOTFS_PATH" "$MAP_PATH/fs"
-
-# Create /context directory inside rootfs
-if [ ! -d "$MAP_PATH/fs/context" ]; then
-    mkdir "$MAP_PATH/fs/context"
-fi
-
-# Move the context disk info into the microVM fs
-bsdtar -xf "$CONTEXT_PATH" -C "$MAP_PATH/fs/context"
-
-clean
+# success!
+mv -f "${NEW_DISK}" "${DISK_DST}"
 
 exit 0
