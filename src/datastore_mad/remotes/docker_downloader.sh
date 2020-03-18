@@ -166,9 +166,14 @@ RUN apk add coreutils \
             udev \
             openssh
 
+RUN rc-update add sysfs && \
+    rc-update add devfs && \
+    rc-update add procfs
+
 RUN rc-update add sshd && \
-    rc-update add udev && \
-    rc-update add sysfs
+    rc-update add udev \
+
+RUN echo "ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100" >> /etc/inittab
 
 RUN apk add --allow-untrusted /root/context.apk
 RUN rm /root/context.apk
