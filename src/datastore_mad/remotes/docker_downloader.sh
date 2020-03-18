@@ -166,19 +166,23 @@ RUN apk add coreutils \
             udev \
             openssh
 
-RUN rc-update add sysfs && \
-    rc-update add devfs && \
-    rc-update add procfs
-
+RUN rc-update add sysfs boot && \
+    rc-update add devfs boot && \
+    rc-update add procfs boot && \
+    rc-update add hostname boot
 
 RUN echo "ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100" >> /etc/inittab
 
 RUN apk add --allow-untrusted /root/context.apk
 RUN rm /root/context.apk
+RUN rc-update del one-context boot && \
+    rc-update add one-context default
 
-RUN rc-update add sshd && \
-    rc-update add udev && \
-    rc-update add networking
+RUN rc-update add sshd default && \
+    rc-update add udev default && \
+    rc-update add networking default
+
+RUN echo 'rc_sys=""' >> /etc/rc.conf
 
 RUN sed -e '159a dev_context=/dev/vdb' \
         -e '169s/.*/\t\tmount -o ro \/dev\/vdb \${MOUNT_DIR} 2\>\/dev\/null/' \
