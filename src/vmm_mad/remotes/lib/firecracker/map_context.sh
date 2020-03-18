@@ -5,9 +5,11 @@
 # to mount both images. Free to use under Apache 2.0 License.
 # 2020, Vlastimil Holer <vlastimil.holer@gmail.com>
 
+export PATH=/usr/sbin:$PATH
+
 set -e -o pipefail
 
-TYPE=${TYPE:-ext2}
+TYPE=${TYPE:-ext4}
 LABEL=${LABEL:-CONTEXT}
 DISK_SRC=$1
 DISK_DST=${2:-${DISK_SRC}.${TYPE}}
@@ -45,8 +47,8 @@ find "${NEW_EXTR}" -mindepth 1 -exec chmod u+w,go+r {} \;
 # create image with extX filesystem
 NEW_SIZE=$(du -sk "${NEW_EXTR}" 2>/dev/null | cut -f1)
 dd if=/dev/zero of="${NEW_DISK}" bs=1024 seek="$((NEW_SIZE + 1000))" count=1 status=none
-mkfs -q -t "${TYPE}" -L "${LABEL}" "${NEW_DISK}"
-tune2fs -c0 -i0 -r0 -O read-only "${NEW_DISK}" >/dev/null
+mkfs -F -q -t "${TYPE}" -L "${LABEL}" "${NEW_DISK}"
+tune2fs -c0 -i0 -r0 "${NEW_DISK}" >/dev/null
 
 # generate debugfs script
 while IFS= read -r -d $'\0' F; do
