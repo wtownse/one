@@ -96,7 +96,7 @@ class MicroVM
     end
 
     def get_pid
-        rc, stdout, = Command.execute("ps auxwww | grep '^.*firecracker.*\\<#{@one.vm_name}\\>' | grep -v grep",
+        rc, stdout, = Command.execute("ps auxwww | grep \"^.*firecracker.*--id['\\\"=[[:space:]]]*#{@one.vm_name}\" | grep -v grep",
                                       false)
 
         if !rc.zero? || stdout.nil?
