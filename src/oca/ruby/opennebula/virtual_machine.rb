@@ -571,7 +571,7 @@ module OpenNebula
         #
         def monitoring(xpath_expressions)
             return super(VM_METHODS[:monitoring], 'VM',
-                'LAST_POLL', xpath_expressions)
+                'TIMESTAMP', xpath_expressions)
         end
 
         # Retrieves this VM's monitoring data from OpenNebula, in XML

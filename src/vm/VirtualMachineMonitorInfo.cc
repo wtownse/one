@@ -16,6 +16,7 @@
 
 #include "VirtualMachineMonitorInfo.h"
 #include "ObjectXML.h"
+#include "Attribute.h"
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
@@ -46,7 +47,10 @@ string VirtualMachineMonitorInfo::to_xml_extended() const
 
     oss << xml_print(TIMESTAMP, _timestamp);
     oss << xml_print(ID, _oid);
-    oss << monitoring.to_xml(monitor_str);
+
+    monitoring.each_attribute([&](const Attribute * a){
+        a->to_xml(oss);
+    });
 
     oss << "</MONITORING>";
 
