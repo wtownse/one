@@ -72,6 +72,16 @@ module Firecracker
             return
         end
 
+        ###################################################################
+        # Machine config will return a JSON with the following information
+        # {
+        #     "vcpu_count": <int>,
+        #     "mem_size_mib": <int>,
+        #     "ht_enabled": <bool>,    # Todo, support it
+        #     "cpu_template": <string> # Todo, support it
+        # }
+        ###################################################################
+
         response
     end
 
@@ -84,6 +94,15 @@ module Firecracker
         rescue StandardError, FirecrackerError
             return
         end
+
+        ###################################################################
+        # General info will return a JSON with the following information
+        # {
+        #     "id": <string>          # (e.g "one-352")
+        #     "state": <string>,      # Check Domain::STATE_MAP
+        #     "vmm_version": <string> # (e.g "0.20.0")
+        # }
+        ###################################################################
 
         response
     end

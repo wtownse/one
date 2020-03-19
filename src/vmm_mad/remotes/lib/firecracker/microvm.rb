@@ -24,6 +24,14 @@ require 'opennebula_vm'
 # This class interacts with Firecracker
 class MicroVM
 
+    #---------------------------------------------------------------------------
+    #   List of commands executed by the driver.
+    #---------------------------------------------------------------------------
+    COMMANDS = {
+        :clean       => 'sudo /var/tmp/one/vmm/firecracker/clean.sh',
+        :map_context => '/var/tmp/one/vmm/firecracker/map_context.sh'
+    }
+
     # rubocop:disable Naming/AccessorMethodName
     # rubocop:disable Layout/LineLength
 
@@ -48,9 +56,6 @@ class MicroVM
 
         @rootfs_dir = "/srv/jailer/firecracker/#{@one.vm_name}/root"
         @context_path = "#{@rootfs_dir}/context"
-
-        @map_context_sh = '/var/tmp/one/vmm/firecracker/map_context.sh'
-        @clean_sh = '/var/tmp/one/vmm/firecracker/clean.sh'
     end
 
     class << self
@@ -118,7 +123,7 @@ class MicroVM
 
         params = " #{context_location} #{context_location}"
 
-        cmd = "#{@map_context_sh} #{params}"
+        cmd = "#{COMMANDS[:map_context]} #{params}"
 
         Command.execute_rc_log(cmd, false)
     end
@@ -239,7 +244,7 @@ class MicroVM
         params = "-c #{cgroup_path} -v #{@one.vm_name} -t #{timeout}"
         params << '  -o' unless delete
 
-        cmd = "sudo #{@clean_sh} #{params}"
+        cmd = "sudo #{COMMANDS[:clean]} #{params}"
 
         Command.execute_rc_log(cmd, false)
     end
