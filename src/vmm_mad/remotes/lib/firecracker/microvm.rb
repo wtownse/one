@@ -28,8 +28,8 @@ class MicroVM
     #   List of commands executed by the driver.
     #---------------------------------------------------------------------------
     COMMANDS = {
-        :clean       => 'sudo /var/tmp/one/vmm/firecracker/clean.sh',
-        :map_context => '/var/tmp/one/vmm/firecracker/map_context.sh'
+        :clean       => 'sudo /var/tmp/one/vmm/firecracker/clean_fc',
+        :map_context => '/var/tmp/one/vmm/firecracker/map_context'
     }
 
     # rubocop:disable Naming/AccessorMethodName
