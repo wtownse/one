@@ -80,6 +80,38 @@ function get_tag_name {
 }
 
 #-------------------------------------------------------------------------------
+# This function takes care of removing all temporary directories in case
+# something fails
+#-------------------------------------------------------------------------------
+function clean_err {
+
+    docker rm -f $container_id  > /dev/null 2>&1 || true
+    docker image rm -f one$sid  > /dev/null 2>&1
+
+    # Unmount mnt directory (if necessary)
+    if  grep -qs "$dockerdir/mnt" /proc/mounts; then
+        sudo umount "$dockerdir/mnt"
+    fi
+
+    rm -rf $dockerdir
+}
+
+#-------------------------------------------------------------------------------
+# This function takes care of checking if the container FS will fit in the size
+# passed as parameter, if not it will used the size of the container FS + 200MB
+#-------------------------------------------------------------------------------
+function get_size {
+    # Get tarbal size
+    tar_size=$(stat -c%s $tarball | awk '{ byte =$1 /1024/1024; print byte}' | | cut -d '.' -f 1)
+
+    if [ "$tar_size" -ge "$size" ]; then
+        size=$(($tar_size + 200))
+    fi
+}
+
+set -e -o pipefail
+
+#-------------------------------------------------------------------------------
 # Parse downloader URL
 #-------------------------------------------------------------------------------
 #  URL is in the form
@@ -114,6 +146,9 @@ dockerfile=$dockerdir/dockerfile
 tarball=$dockerdir/fs.tar
 img_raw=$dockerdir/img.raw
 img_qcow=$dockerdir/img.qcow
+
+# Trap for cleaning temporary directories
+trap clean_err ERR
 
 mkdir -p $dockerdir
 mkdir -p $dockerdir/mnt
@@ -221,6 +256,10 @@ docker image rm one$sid  > /dev/null 2>&1
 #-------------------------------------------------------------------------------
 # Dump container FS and create image
 #-------------------------------------------------------------------------------
+
+# Ensure $size have a good value
+get_size
+
 qemu-img create -f raw $img_raw ${size}M  > /dev/null 2>&1
 
 case $filesystem in
