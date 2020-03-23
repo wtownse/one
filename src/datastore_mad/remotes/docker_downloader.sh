@@ -102,7 +102,7 @@ function clean_err {
 #-------------------------------------------------------------------------------
 function get_size {
     # Get tarbal size
-    tar_size=$(stat -c%s $tarball | awk '{ byte =$1 /1024/1024; print byte}' | | cut -d '.' -f 1)
+    tar_size=$(stat -c%s $tarball | awk '{ byte =$1 /1024/1024; print byte}' | cut -d '.' -f 1)
 
     if [ "$tar_size" -ge "$size" ]; then
         size=$(($tar_size + 200))
