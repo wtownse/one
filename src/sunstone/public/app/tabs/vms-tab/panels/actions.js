@@ -99,7 +99,7 @@ define(function(require) {
     var actions = [
       "terminate", "terminate-hard", "hold", "release", "stop", "suspend", "resume",
       "reboot", "reboot-hard", "poweroff", "poweroff-hard", "undeploy", "undeploy-hard",
-      "snapshot-create"
+      "snapshot-create","snapshot-delete", "snapshot-revert", "disk-snapshot-create", "disk-snapshot-delete", "disk-snapshot-revert"
     ];
     
     context.off("click", "#add_scheduling_vms_action");
