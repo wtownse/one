@@ -50,7 +50,6 @@ for this error run  `killall -9 node` and start app again
 - `src/index.js`: entrypoint node.
 - `config.yml`: enviroment config for user
 - `.eslintignore`: files ignored by the eslint
-- `.gitignore`: files ignored by git
 - `copyStaticAssets.js`: copy the html resourses to dist/public path (.ico, .css, fonts, etc).
 - `packaje.json`: contains the name of the packages used by the application.
 - `webpack.config.js`: contains the JS transpiler configurations.
