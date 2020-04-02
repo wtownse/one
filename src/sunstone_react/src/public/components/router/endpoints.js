@@ -24,60 +24,51 @@ const endpoints = {
   login: {
     path: '/',
     authenticated: false,
+    menu: false,
     component: Login
   },
   dashboard: {
-    name: 'Dashboard',
     path: '/dashboard',
     component: () => <Dashboard />
   },
   settings: {
-    name: 'Settings',
     path: '/settings',
     component: () => <Settings />
   },
-  testApi: {
-    name: 'Test Api',
+  test_api: {
     path: '/test-api',
     component: () => <TestApi />
   },
   // infrastructure
   infrastructure: {
     clusters: {
-      name: 'Clusters',
       path: '/clusters',
       component: () => <Clusters />
     },
     hosts: {
-      name: 'Hosts',
       path: '/hosts',
       component: () => <Hosts />
     },
     zones: {
-      name: 'Zones',
       path: '/zones',
       component: () => <Zones />
     }
-  }
+  },
   // networks
-  /* networks: {
+  networks: {
     vnets: {
-      name: 'Virtual networks',
       path: '/vnets'
     },
     vnets_templates: {
-      name: 'Virtual networks',
       path: '/vnets-templates'
     },
     vnets_topology: {
-      name: 'Virtual networks',
       path: '/vnets-topology'
     },
     vnets_secgroup: {
-      name: 'Security groups',
       path: '/secgroup'
     }
-  } */
+  }
 };
 
 export default endpoints;

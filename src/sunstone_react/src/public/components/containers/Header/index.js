@@ -18,6 +18,7 @@ import { AppBar, Toolbar, IconButton, Typography } from '@material-ui/core';
 import MenuIcon from '@material-ui/icons/Menu';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import classnames from 'classnames';
 import User from './User';
 import Zone from './Zone';
 import { showMenu } from '../../../actions';
@@ -27,7 +28,7 @@ const Header = ({ display, displayMenu: displayMenuFromProps, title }) => {
     displayMenuFromProps(!display);
   };
   return (
-    <AppBar position="sticky">
+    <AppBar position="sticky" className={classnames('header')}>
       <Toolbar>
         <IconButton
           onClick={displayMenu}
@@ -39,7 +40,7 @@ const Header = ({ display, displayMenu: displayMenuFromProps, title }) => {
           <MenuIcon />
         </IconButton>
         <Typography variant="h6" style={{ flexGrow: 1 }}>
-          <b>{title}</b>
+          <b className={classnames('title')}>{title}</b>
         </Typography>
         <User />
         <Zone />

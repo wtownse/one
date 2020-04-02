@@ -14,17 +14,15 @@
 /* -------------------------------------------------------------------------- */
 
 .menu{
-  border-right: 2px solid $tertiary;
-  background-color: $primary;
   color: $secondary;
+  width: 15rem;
 
-  &.open{
-    max-width: 300px;
+  .link{
+    text-transform: capitalize;
+    color: $font_primary;
   }
-
-  &.close{
-    max-width: 0px;
-    padding: 0px;
-    border: 0px;
+  .internalNav{
+    padding-top: 0px;
+    padding-bottom: 0px;
   }
 }

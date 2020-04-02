@@ -15,5 +15,8 @@
 
 .header{
   border-bottom: 2px solid $primary;
-  background-color: $secondary
+  background-color: $secondary;
+  .title{
+    text-transform: capitalize;
+  }
 }
