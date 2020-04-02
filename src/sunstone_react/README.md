@@ -1,29 +1,29 @@
 # Sunstone React
 
-base for a new sunstone (Opennebula).
+New Sunstone incarnation in React.
 
-## Commands for run this
+## Build & Run
 
 - **yarn** (this command import the dependecies).
 - **yarn build** (execute the javascript build "bundle")
 - **yarn start** (start the server in port 3000)
 
-## Commands for development
-
+## Development
 - **yarn dev** (run server in mode development)
 
 ## How to use
 
 - **Api**
-  it is a http request, return opennebula resource info or login this return a `JWT`.
+
+  REST Interface. Usually Returns OpenNebula resource info. Login returns a JSON Web Token (`JWT`).
 
   - Login: POST: `http://localhost:3000/api/auth` with params: `user` and `pass`.
   - Other: check file `src/config/command-params.js`
 
 - **zeroMQ**
-  it is a websocket connection call to: `ws://127.0.0.1:3000/?token=JWT`
+  Websocket connection call to: `ws://127.0.0.1:3000/?token=JWT`
 
-## Errors with solutions
+## Troubleshooting
 
 - [nodemon] Internal watch failed: watch ENOSPC
 for this error run `sudo sysctl fs.inotify.max_user_watches=582222 && sudo sysctl -p`
