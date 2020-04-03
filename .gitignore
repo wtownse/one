@@ -47,6 +47,13 @@ src/sunstone/public/locale/languages/*.js
 src/sunstone/public/package-lock.json
 .tx/config
 
+src/sunstone_react/node_modules
+src/sunstone_react/dist
+src/sunstone_react/test
+src/sunstone_react/.vscode/launch.json
+src/sunstone_react/yarn-error.log
+src/sunstone_react/sunstone.log
+
 share/esx-fw-vnc/*.rpm
 share/esx-fw-vnc/.vagrant*
 
