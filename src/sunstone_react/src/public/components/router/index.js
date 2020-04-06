@@ -31,7 +31,7 @@ const routeElement = (
     component={({ match, history }) =>
       authenticated ? (
         <AuthLayout history={history} match={match}>
-          <InternalLayout title={title}>
+          <InternalLayout title={title.replace('_', ' ')}>
             {createElement(component)}
           </InternalLayout>
         </AuthLayout>

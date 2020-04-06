@@ -15,12 +15,14 @@
 
 import React, { useState } from 'react';
 import {
+  Grid,
   List,
   ListItem,
   ListItemText,
   ExpansionPanel,
   ExpansionPanelSummary,
-  ExpansionPanelDetails
+  ExpansionPanelDetails,
+  Divider
 } from '@material-ui/core';
 import classnames from 'classnames';
 import { Link } from 'react-router-dom';
@@ -79,7 +81,9 @@ const PrincipalMenu = () => {
             {title.replace('_', ' ')}
           </ExpansionPanelSummary>
           <ExpansionPanelDetails className={classnames('internalNav')}>
-            <List style={{ width: '100%' }}>{internal}</List>
+            <List disablePadding style={{ width: '100%' }}>
+              {internal}
+            </List>
           </ExpansionPanelDetails>
         </ExpansionPanel>
       )
@@ -87,13 +91,25 @@ const PrincipalMenu = () => {
   };
 
   return (
-    <List className={classnames('menu')}>
-      {Object.entries(endpoints)?.map(([title, routes]) =>
-        routes.component
-          ? routeElement(title, routes)
-          : routeElements(title, routes)
-      )}
-    </List>
+    <div className={classnames('menu')}>
+      <Grid container>
+        <Grid item className={classnames('logo-wrapper')}>
+          <img
+            className={classnames('logo')}
+            src="/static/logo.png"
+            alt="Opennebula"
+          />
+        </Grid>
+      </Grid>
+      <Divider />
+      <List>
+        {Object.entries(endpoints)?.map(([title, routes]) =>
+          routes.component
+            ? routeElement(title, routes)
+            : routeElements(title, routes)
+        )}
+      </List>
+    </div>
   );
 };
 

@@ -31,7 +31,7 @@ module.exports = {
     text: 'Opennebula Systems',
     url: 'https://opennebula.org/'
   },
-  endpoints: {
+  endpointsRoutes: {
     login: '/api/auth/',
     userInfo: '/api/user/info'
   }

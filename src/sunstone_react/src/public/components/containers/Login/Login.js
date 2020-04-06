@@ -72,7 +72,7 @@ const Login = ({ history, baseURL }) => {
   };
 
   const handleSubmit = element => {
-    const { jwtName, endpoints } = constants;
+    const { jwtName, endpointsRoutes } = constants;
     const loginParams = {
       data: { user, pass },
       method: 'POST',
@@ -86,7 +86,7 @@ const Login = ({ history, baseURL }) => {
       element.preventDefault();
       if (user && pass) {
         removeStoreData(jwtName);
-        requestData(endpoints.login, loginParams).then(response => {
+        requestData(endpointsRoutes.login, loginParams).then(response => {
           if (response && response.data) {
             const { id, data } = response;
             const { token: opennebulaToken, message } = data;

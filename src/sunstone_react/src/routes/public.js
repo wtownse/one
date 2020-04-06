@@ -61,9 +61,7 @@ router.get('*', (req, res) => {
       ${includeCSSbyHTML(pathPublic)}
     </head>
     <body>
-      <div id="root" class="${classnames(
-        'MuiContainer-root'
-      )}">${component}</div>
+      <div id="root">${component}</div>
       <script id="preloadState">
         window.__PRELOADED_STATE__ = ${JSON.stringify(store.getState()).replace(
           /</g,

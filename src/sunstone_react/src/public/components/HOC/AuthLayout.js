@@ -18,6 +18,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { requestData, removeStoreData, findStorageData } from '../../utils';
 import constants from '../../constants';
+import components from '../router/endpoints';
 import { setUser } from '../../actions';
 
 class AuthLayout extends Component {
@@ -30,10 +31,10 @@ class AuthLayout extends Component {
   }
 
   componentDidMount() {
-    const { jwtName, endpoints } = constants;
+    const { jwtName, endpointsRoutes } = constants;
     const { changeName } = this.props;
     if (findStorageData && findStorageData(jwtName)) {
-      requestData(endpoints.userInfo).then(response => {
+      requestData(endpointsRoutes.userInfo).then(response => {
         if (response && response.data && response.data.USER) {
           const { USER: userInfo } = response.data;
           this.setState({ show: true });
@@ -48,10 +49,11 @@ class AuthLayout extends Component {
   }
 
   redirectToLogin() {
-    const { jwtName, reactEndpoints } = constants;
+    const { jwtName } = constants;
     const { history } = this.props;
     removeStoreData(jwtName);
-    history.push(reactEndpoints.login);
+    const { login } = components;
+    history.push(login.path);
   }
 
   render() {
