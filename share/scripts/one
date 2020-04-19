@@ -206,7 +206,8 @@ start_oned()
         [ -f "$ONE_LOG" ] && mv $ONE_LOG{,.$(date '+%Y%m%d%H%M%S')}
         [ -f "$ONE_XMLRPC_LOG" ] && mv $ONE_XMLRPC_LOG{,.$(date '+%Y%m%d%H%M%S')}
     fi
-    $ONED -f 2>&1 &
+    valgrind --leak-check=full --show-leak-kinds=definite $ONED -f 2>&1 &
+    #$ONED -f 2>&1 &
 
     LASTRC=$?
     LASTPID=$!
