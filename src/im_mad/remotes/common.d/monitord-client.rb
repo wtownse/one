@@ -174,9 +174,21 @@ class ProbeRunner
     # rubocop:enable Lint/SuppressedException
 
     # Singleton call for run_probes method
-    def self.run_once(hyperv, path, stdin)
-        runner = ProbeRunner.new(hyperv, path, stdin)
-        runner.run_probes
+    def self.run_once(hyperv, probes, stdin)
+        rc = 0
+        ret = ''
+        probes.each do |name, probe|
+            next if name == :beacon_host_udp
+
+            runner = ProbeRunner.new(hyperv, probe[:path], stdin)
+            rc, dt = runner.run_probes
+
+            dt64 = Base64.encode64(dt).gsub("\n", '')
+            ret += "<#{probe[:elem_name]}>#{dt64}</#{probe[:elem_name]}>\n"
+
+            return rc, ret if rc == -1
+        end
+        [rc, ret]
     end
 
     # Executes the probes in the directory in a loop. The block is called after
@@ -242,21 +254,25 @@ begin
     probes = {
         :system_host_udp => {
             :period => config.elements['PROBES_PERIOD/SYSTEM_HOST'].text.to_s,
+            :elem_name => 'HOST_SYSTEM',
             :path => 'host/system'
         },
 
         :monitor_host_udp => {
             :period => config.elements['PROBES_PERIOD/MONITOR_HOST'].text.to_s,
+            :elem_name => 'HOST_MONITOR',
             :path => 'host/monitor'
         },
 
         :state_vm_tcp => {
             :period => config.elements['PROBES_PERIOD/STATE_VM'].text.to_s,
+            :elem_name => 'VM_STATE',
             :path => 'vm/status'
         },
 
         :monitor_vm_udp => {
             :period => config.elements['PROBES_PERIOD/MONITOR_VM'].text.to_s,
+            :elem_name => 'VM_MONITOR',
             :path => 'vm/monitor'
         },
 
@@ -293,8 +309,7 @@ end
 
 client = MonitorClient.new(host, port, hostid, :pubkey => pubkey)
 
-rc, dt = ProbeRunner.run_once(hyperv, probes[:system_host_udp][:path], xml_txt)
-
+rc, dt = ProbeRunner.run_once(hyperv, probes, xml_txt)
 puts dt
 
 STDOUT.flush
