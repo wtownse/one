@@ -176,7 +176,7 @@ class ProbeRunner
     # Singleton call for run_probes method
     def self.run_once(hyperv, probes, stdin)
         rc = 0
-        ret = ''
+        ret = '<msgs>'
         probes.each do |name, probe|
             next if name == :beacon_host_udp
 
@@ -188,6 +188,7 @@ class ProbeRunner
 
             return rc, ret if rc == -1
         end
+        ret+='</msgs>'
         [rc, ret]
     end
 
@@ -254,25 +255,25 @@ begin
     probes = {
         :system_host_udp => {
             :period => config.elements['PROBES_PERIOD/SYSTEM_HOST'].text.to_s,
-            :elem_name => 'HOST_SYSTEM',
+            :elem_name => 'SYSTEM_HOST',
             :path => 'host/system'
         },
 
         :monitor_host_udp => {
             :period => config.elements['PROBES_PERIOD/MONITOR_HOST'].text.to_s,
-            :elem_name => 'HOST_MONITOR',
+            :elem_name => 'MONITOR_HOST',
             :path => 'host/monitor'
         },
 
         :state_vm_tcp => {
             :period => config.elements['PROBES_PERIOD/STATE_VM'].text.to_s,
-            :elem_name => 'VM_STATE',
+            :elem_name => 'STATE_VM',
             :path => 'vm/status'
         },
 
         :monitor_vm_udp => {
             :period => config.elements['PROBES_PERIOD/MONITOR_VM'].text.to_s,
-            :elem_name => 'VM_MONITOR',
+            :elem_name => 'MONITOR_VM',
             :path => 'vm/monitor'
         },
 

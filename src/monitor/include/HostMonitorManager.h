@@ -53,6 +53,8 @@ public:
 
     OneMonitorDriver* get_oned_driver() const { return oned_driver; }
 
+    TCPMonitorDriver* get_tcp_driver() const { return tcp_driver; }
+
     //--------------------------------------------------------------------------
     //  Driver Interface
     //--------------------------------------------------------------------------
