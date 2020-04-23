@@ -19,6 +19,7 @@
 #include "NebulaLog.h"
 #include "HostMonitorManager.h"
 #include "OneMonitorDriver.h"
+#include "TCPMonitorDriver.h"
 
 HostMonitorManager * MonitorDriverProtocol::hm = nullptr;
 
@@ -200,8 +201,46 @@ void MonitorDriverProtocol::_start_monitor(message_t msg)
         return;
     }
 
-    auto oned = hm->get_oned_driver();
-    oned->host_system_info(msg->oid(), msg->status(), msg->payload());
+    // Parse xml string as libxml document
+    auto xml_doc = xmlParseMemory(msg->payload().c_str(), msg->payload().length());
+
+    if (xml_doc == nullptr) // Error parsing XML Document
+    {
+        return;
+    }
+
+    // Get the <TEMPLATE> element
+    auto root_element = xmlDocGetRootElement(xml_doc);
+    if (root_element == nullptr)
+    {
+        return;
+    }
+
+    for (auto node = root_element->children;
+         node != nullptr;
+         node = node->next)
+    {
+        if (node->type == XML_ELEMENT_NODE &&
+            node->children != nullptr)
+        {
+            string decoded;
+
+            base64_decode(reinterpret_cast<const char*>(node->children->content),
+                decoded);
+
+            auto driver = hm->get_tcp_driver();
+
+            message_t m(new Message<MonitorDriverMessages>);
+            m->type(reinterpret_cast<const char*>(node->name));
+            m->oid(msg->oid());
+            m->status(msg->status());
+            m->payload(decoded);
+
+            driver->do_action(m, true);
+        }
+    }
+
+    xmlFreeDoc(xml_doc);
 
     hm->start_monitor_success(msg->oid());
 }

@@ -99,6 +99,11 @@ public:
         _type = t;
     }
 
+    void type(const std::string& t)
+    {
+    _type = _type_str._from_str(t);
+    }
+
     /**
      *  Returns type of the message as string
      */
