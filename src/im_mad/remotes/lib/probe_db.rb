@@ -61,6 +61,7 @@ class VirtualMachineDB
         uuid
         id
         name
+        deploy_id
         timestamp
         missing
         state
