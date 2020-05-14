@@ -230,7 +230,7 @@ class VirtualMachineDB
     end
 
     def vm_to_status(vm, state = vm[:state])
-        "VM = [ ID=\"#{vm[:id]}\", DEPLOY_ID=\"#{vm[:delpoy_id]}\", " \
+        "VM = [ ID=\"#{vm[:id]}\", DEPLOY_ID=\"#{vm[:deploy_id]}\", " \
         " STATE=\"#{state}\" ]\n"
     end
 
