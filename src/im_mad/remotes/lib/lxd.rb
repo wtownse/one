@@ -30,7 +30,7 @@ module LXD
     # High level abstraction entity for monitoring LXD containers
     class Domain
 
-        attr_accessor :metrics, :lxc_path, :container, :id, :wild, :deploy_id
+        attr_accessor :metrics, :lxc_path, :container, :id, :wild
 
         def initialize(container)
             @container = container
