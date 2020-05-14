@@ -30,7 +30,7 @@ module LXD
     # High level abstraction entity for monitoring LXD containers
     class Domain
 
-        attr_accessor :metrics, :lxc_path, :container, :id, :wild
+        attr_accessor :metrics, :lxc_path, :container, :id, :wild, :deploy_id
 
         def initialize(container)
             @container = container
@@ -138,8 +138,8 @@ module LXD
                 CPU    = #{cpu}
                 VCPU   = #{vcpu}
                 MEMORY = #{mem}
-                HYPERVISOR   = "lxd"
-                IMPORT_VM_ID = "#{@deploy_id}"
+                HYPERVISOR = "lxd"
+                DEPLOY_ID  = "#{@deploy_id}"
                 OS = [ ARCH="#{arch}" ]
             EOT
 
@@ -149,7 +149,7 @@ module LXD
         private
 
         def template_string_header
-            "VM = [ ID=#{@id}, UUID=#{@uuid}, "
+            "VM = [ ID=#{@id}, DEPLOY_ID=#{@deploy_id}, "
         end
 
         def parse_memory(memory)
