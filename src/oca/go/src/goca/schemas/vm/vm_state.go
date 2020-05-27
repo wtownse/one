@@ -293,6 +293,9 @@ const (
 
 	// DiskResizeUndeployed lcm state
 	DiskResizeUndeployed LCMState = 64
+
+	// HotplugNicPoweroff lcm state
+	HotplugNicPoweroff = 65
 )
 
 func (s LCMState) isValid() bool {
