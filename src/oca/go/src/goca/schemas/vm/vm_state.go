@@ -430,6 +430,8 @@ func (s LCMState) String() string {
 		return "DISK_RESIZE_POWEROFF"
 	case DiskResizeUndeployed:
 		return "DISK_RESIZE_UNDEPLOYED"
+	case HotplugNicPoweroff:
+		return "HOTPLUG_NIC_POWEROFF"
 	default:
 		return ""
 	}
