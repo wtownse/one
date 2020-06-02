@@ -36,7 +36,6 @@ public:
         }
     }
 
-
     HostBaseLock get(int oid) const
     {
         return RPCPool::get<HostBase>(oid);

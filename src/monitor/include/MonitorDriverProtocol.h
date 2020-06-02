@@ -21,6 +21,8 @@
 
 class HostMonitorManager;
 
+class Template;
+
 struct MonitorDriverProtocol
 {
 public:
@@ -43,6 +45,10 @@ public:
     static void _log(message_t msg);
 
     static HostMonitorManager * hm;
+
+private:
+
+    static bool parse_payload(const message_t& msg, Template& tmpl);
 };
 
 #endif // MONITOR_DRIVER_H_

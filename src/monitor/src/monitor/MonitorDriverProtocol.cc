@@ -27,6 +27,35 @@ HostMonitorManager * MonitorDriverProtocol::hm = nullptr;
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
+bool MonitorDriverProtocol::parse_payload(const message_t& msg, Template& tmpl)
+{
+    char * error_msg;
+
+    int rc = tmpl.parse(msg->payload(), &error_msg);
+
+    if ( rc == 0 )
+    {
+        return true;
+    }
+
+    ostringstream oss;
+
+    oss << "Error parsing VM monitoring template from host " << msg->oid()
+        << "\nMessage: " << msg->payload()
+        << "\nError: " << error_msg;
+
+    NebulaLog::error("MDP", oss.str());
+
+    free(error_msg);
+
+    hm->error_monitor(msg->oid(), "Error parsing monitor information");
+
+    return false;
+}
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
 void MonitorDriverProtocol::_undefined(message_t msg)
 {
     NebulaLog::info("MDP", "Received UNDEFINED msg: " + msg->payload());
@@ -49,22 +78,14 @@ void MonitorDriverProtocol::_monitor_vm(message_t msg)
     }
 
     Template tmpl;
-    char *   error_msg;
 
-    int rc = tmpl.parse(msg->payload(), &error_msg);
-
-    if (rc != 0)
+    if (!MonitorDriverProtocol::parse_payload(msg, tmpl))
     {
-        ostringstream oss;
-        oss << "Error parsing VM monitoring template from host " << msg->oid()
-            << "\nMessage: " << msg->payload()
-            << "\nError: " << error_msg;
+        return;
+    }
 
-        NebulaLog::error("MDP", oss.str());
-
-        free(error_msg);
-
-        hm->error_monitor(msg->oid(), "Error parsing monitor information");
+    if (!hm->test_set_timestamp(MonitorDriverMessages::MONITOR_VM, msg->oid(), tmpl))
+    {
         return;
     }
 
@@ -98,8 +119,9 @@ void MonitorDriverProtocol::_monitor_vm(message_t msg)
         }
 
         Template mon_tmpl;
+        char *   error_msg;
 
-        rc = mon_tmpl.parse(*monitor_plain, &error_msg);
+        int rc = mon_tmpl.parse(*monitor_plain, &error_msg);
 
         if (rc != 0)
         {
@@ -183,22 +205,14 @@ void MonitorDriverProtocol::_monitor_host(message_t msg)
     }
 
     Template tmpl;
-    char*    error_msg;
 
-    int rc = tmpl.parse(msg->payload(), &error_msg);
-
-    if (rc != 0)
+    if (!MonitorDriverProtocol::parse_payload(msg, tmpl))
     {
-        ostringstream oss;
-        oss << "Error parsing monitoring template for host " << msg->oid()
-            << "\nMessage: " << msg->payload()
-            << "\nError: " << error_msg;
+        return;
+    }
 
-        NebulaLog::error("MDP", oss.str());
-
-        free(error_msg);
-
-        hm->error_monitor(msg->oid(), "Error parsing monitor information");
+    if (!hm->test_set_timestamp(MonitorDriverMessages::MONITOR_HOST, msg->oid(), tmpl))
+    {
         return;
     }
 
@@ -222,6 +236,18 @@ void MonitorDriverProtocol::_system_host(message_t msg)
         return;
     }
 
+    Template tmpl;
+
+    if (!MonitorDriverProtocol::parse_payload(msg, tmpl))
+    {
+        return;
+    }
+
+    if (!hm->test_set_timestamp(MonitorDriverMessages::MONITOR_HOST, msg->oid(), tmpl))
+    {
+        return;
+    }
+
     auto oned = hm->get_oned_driver();
     oned->host_system_info(msg->oid(), msg->status(), msg->payload());
 }
@@ -240,6 +266,18 @@ void MonitorDriverProtocol::_state_vm(message_t msg)
             to_string(msg->oid()) + ": " + msg->payload());
 
         hm->error_monitor(msg->oid(), msg->payload());
+        return;
+    }
+
+    Template tmpl;
+
+    if (!MonitorDriverProtocol::parse_payload(msg, tmpl))
+    {
+        return;
+    }
+
+    if (!hm->test_set_timestamp(MonitorDriverMessages::MONITOR_HOST, msg->oid(), tmpl))
+    {
         return;
     }
 

@@ -108,6 +108,17 @@ public:
     void delete_host(int oid);
 
     /**
+     *  Check if the message is valid based in the TIMESTAMP attribute
+     *    @param type of the message
+     *    @param oid of the host
+     *    @param tmp message payload
+     *
+     *    @return true if message timestamp is greater than last timestamp or
+     *    no timestamp is found in payload
+     */
+    bool test_set_timestamp(MonitorDriverMessages type, int oid, const Template &tmp) const;
+
+    /**
      *  Sets the monitor information of the host. It notifies oned if needed.
      *    @param oid host id
      *    @param tmpl monitoring template

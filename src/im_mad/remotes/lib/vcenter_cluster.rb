@@ -563,7 +563,6 @@ class Cluster
     end
 
     #---------------------------------------------------------------------------
-    #
     # TODO: Add more than one nsx managers
     #---------------------------------------------------------------------------
     def nsx_info_vcenter
@@ -825,6 +824,8 @@ class ClusterSet
                         success = false
                         probe_result = e.message
                     end
+
+                    probe_result += "\nTIMESTAMP=#{Time.now.to_i}"
 
                     $logger.debug("\tResult(#{success})\n#{probe_result}\n")
 

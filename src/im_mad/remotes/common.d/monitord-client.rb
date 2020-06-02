@@ -83,6 +83,8 @@ class ProbeRunner
             return [-1, "Error executing #{probe}: #{e_}"] if s_.exitstatus != 0
         end
 
+        dat += "\nTIMESTAMP=#{Time.now.to_i}"
+
         [0, data]
     end
     # rubocop:enable Lint/SuppressedException
