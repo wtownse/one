@@ -48,9 +48,9 @@ int rsa_private_decrypt(const std::string& in, std::string& out);
  *  This class represents a generic message used by the Monitoring Protocol.
  *  The structure of the message is:
  *
- *  +------+-----+--------+-----+-----+---------+------+
- *  | TYPE | ' ' | STATUS | ' ' | OID | PAYLOAD | '\n' |
- *  +------+-----+--------+-----+-----+---------+------+
+ *  +------+-----+--------+-----+-----+-----+---------+-----+----+------+
+ *  | TYPE | ' ' | STATUS | ' ' | OID | ' ' | PAYLOAD | ' ' | TS | '\n' |
+ *  +------+-----+--------+-----+-----+-----+---------+-----+----+------+
  *
  *    TYPE String (non-blanks) identifying the message type
  *    ' ' A single white space to separate fields
@@ -58,6 +58,7 @@ int rsa_private_decrypt(const std::string& in, std::string& out);
  *      type, could contain result of operation ("SUCCESS" or "FAILURE")
  *    OID Number, id of affected object, -1 if not object related
  *    PAYLOAD of the message XML base64 encoded
+ *    TS timestamp for the message in epoch. This field is optional
  *    '\n' End of message delimiter
  *
  */
@@ -154,6 +155,19 @@ public:
         _payload = p;
     }
 
+    /**
+     *  Message timestamp, optional
+     */
+    time_t timestamp() const
+    {
+        return _timestamp;
+    }
+
+    void timestamp(time_t ts)
+    {
+        _timestamp = ts;
+    }
+
 private:
     /**
      *  Message fields
@@ -165,6 +179,8 @@ private:
     int _oid = -1;
 
     std::string _payload;
+
+    time_t _timestamp = 0;
 
     static const EString<E> _type_str;
 };
@@ -224,6 +240,11 @@ int Message<E>::parse_from(const std::string& input, bool decrypt)
         }
     }
 
+    if ( is.good() )
+    {
+        is >> _timestamp;
+    }
+
     return 0;
 
 error:
@@ -276,6 +297,8 @@ int Message<E>::write_to(std::string& out, bool encrypt) const
     out += std::to_string(_oid);
     out += ' ';
     out += payloaz64;
+    out += ' ';
+    out += std::to_string(_timestamp);
     out += '\n';
 
     return 0;

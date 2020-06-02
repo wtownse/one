@@ -48,6 +48,12 @@ void MonitorDriverProtocol::_monitor_vm(message_t msg)
         return;
     }
 
+    if (!hm->test_set_timestamp(MonitorDriverMessages::MONITOR_VM, msg->oid(),
+                msg->timestamp()))
+    {
+        return;
+    }
+
     Template tmpl;
     char *   error_msg;
 
@@ -182,6 +188,12 @@ void MonitorDriverProtocol::_monitor_host(message_t msg)
         return;
     }
 
+    if (!hm->test_set_timestamp(MonitorDriverMessages::MONITOR_HOST, msg->oid(),
+                msg->timestamp()))
+    {
+        return;
+    }
+
     Template tmpl;
     char*    error_msg;
 
@@ -222,6 +234,12 @@ void MonitorDriverProtocol::_system_host(message_t msg)
         return;
     }
 
+    if (!hm->test_set_timestamp(MonitorDriverMessages::SYSTEM_HOST, msg->oid(),
+                msg->timestamp()))
+    {
+        return;
+    }
+
     auto oned = hm->get_oned_driver();
     oned->host_system_info(msg->oid(), msg->status(), msg->payload());
 }
@@ -240,6 +258,12 @@ void MonitorDriverProtocol::_state_vm(message_t msg)
             to_string(msg->oid()) + ": " + msg->payload());
 
         hm->error_monitor(msg->oid(), msg->payload());
+        return;
+    }
+
+    if (!hm->test_set_timestamp(MonitorDriverMessages::STATE_VM, msg->oid(),
+                msg->timestamp()))
+    {
         return;
     }
 
