@@ -22,6 +22,8 @@
 
 #include "MonitorDriverMessages.h"
 
+#include <iomanip>
+
 HostMonitorManager * MonitorDriverProtocol::hm = nullptr;
 
 /* -------------------------------------------------------------------------- */
@@ -32,12 +34,33 @@ void MonitorDriverProtocol::_undefined(message_t msg)
     NebulaLog::info("MDP", "Received UNDEFINED msg: " + msg->payload());
 }
 
+static void log_message(const std::unique_ptr<Message<MonitorDriverMessages>>& msg)
+{
+    if ( NebulaLog::log_level() < Log::DDEBUG )
+    {
+        return;
+    }
+
+    ostringstream oss;
+
+    struct tm tms;
+    time_t    ts = msg->timestamp();
+
+    localtime_r(&ts, &tms);
+
+    oss << "[" << std::put_time(&tms, "%H:%M:%S") << "] Recieved "
+        << msg->type_str() << " message from host " << msg->oid() << ":\n"
+        << msg->payload();
+
+    NebulaLog::ddebug("MDP", oss.str());
+}
+
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
 void MonitorDriverProtocol::_monitor_vm(message_t msg)
 {
-    NebulaLog::ddebug("MDP", "Received MONITOR_VM msg: " + msg->payload());
+    log_message(msg);
 
     if (msg->status() != "SUCCESS")
     {
@@ -153,8 +176,7 @@ void MonitorDriverProtocol::_monitor_vm(message_t msg)
 
 void MonitorDriverProtocol::_beacon_host(message_t msg)
 {
-    NebulaLog::ddebug("MDP", "Received beacon for host " +
-            to_string(msg->oid()) + ": " + msg->payload());
+    log_message(msg);
 
     if (msg->status() != "SUCCESS")
     {
@@ -176,8 +198,7 @@ void MonitorDriverProtocol::_beacon_host(message_t msg)
 
 void MonitorDriverProtocol::_monitor_host(message_t msg)
 {
-    NebulaLog::ddebug("MDP", "Received monitoring information for host " +
-            to_string(msg->oid()) + ": " + msg->payload());
+    log_message(msg);
 
     if (msg->status() != "SUCCESS")
     {
@@ -222,8 +243,7 @@ void MonitorDriverProtocol::_monitor_host(message_t msg)
 
 void MonitorDriverProtocol::_system_host(message_t msg)
 {
-    NebulaLog::ddebug("MDP", "Received system information for host " +
-            to_string(msg->oid()) + ": " + msg->payload());
+    log_message(msg);
 
     if (msg->status() != "SUCCESS")
     {
@@ -249,8 +269,7 @@ void MonitorDriverProtocol::_system_host(message_t msg)
 
 void MonitorDriverProtocol::_state_vm(message_t msg)
 {
-    NebulaLog::ddebug("MDP", "Received state vm message for host " +
-            to_string(msg->oid()) + ": " + msg->payload());
+    log_message(msg);
 
     if (msg->status() != "SUCCESS")
     {
@@ -286,8 +305,7 @@ void MonitorDriverProtocol::_state_vm(message_t msg)
  */
 void MonitorDriverProtocol::_start_monitor(message_t msg)
 {
-    NebulaLog::ddebug("MDP", "Received start monitor for host " +
-            to_string(msg->oid()) + ": " + msg->payload());
+    log_message(msg);
 
     if (msg->status() != "SUCCESS")
     {
@@ -318,6 +336,10 @@ void MonitorDriverProtocol::_start_monitor(message_t msg)
         return;
     }
 
+    time_t ts;
+
+    msg_xml.xpath(ts, "/MONITOR_MESSAGES/TIMESTAMP", static_cast<time_t>(0));
+
     const std::vector<MonitorDriverMessages> stypes = {
         MonitorDriverMessages::MONITOR_VM,
         MonitorDriverMessages::BEACON_HOST,
@@ -345,6 +367,8 @@ void MonitorDriverProtocol::_start_monitor(message_t msg)
         m->type(it);
 
         m->oid(msg->oid());
+
+        m->timestamp(ts);
 
         m->status("SUCCESS");
 
