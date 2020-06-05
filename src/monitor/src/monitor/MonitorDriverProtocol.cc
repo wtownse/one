@@ -48,9 +48,9 @@ static void log_message(const std::unique_ptr<Message<MonitorDriverMessages>>& m
 
     localtime_r(&ts, &tms);
 
-    oss << "[" << std::put_time(&tms, "%H:%M:%S") << "] Recieved "
-        << msg->type_str() << " message from host " << msg->oid() << ":\n"
-        << msg->payload();
+    oss << "[" << tms.tm_hour << ":" << tms.tm_min << ":" << tms.tm_sec
+        << "] Recieved " << msg->type_str() << " message from host "
+        << msg->oid() << ":\n" << msg->payload();
 
     NebulaLog::ddebug("MDP", oss.str());
 }
