@@ -1,5 +1,5 @@
 /* -------------------------------------------------------------------------- */
-/* Copyright 2002-2019, OpenNebula Project, OpenNebula Systems                */
+/* Copyright 2002-2020, OpenNebula Project, OpenNebula Systems                */
 /*                                                                            */
 /* Licensed under the Apache License, Version 2.0 (the "License"); you may    */
 /* not use this file except in compliance with the License. You may obtain    */
@@ -30,22 +30,25 @@
  *  This class represents a generic message used by the Monitoring Protocol.
  *  The structure of the message is:
  *
- *  +------+-----+--------+-----+-----+---------+------+
- *  | TYPE | ' ' | STATUS | ' ' | OID | PAYLOAD | '\n' |
- *  +------+-----+--------+-----+-----+---------+------+
+ *  +------+-----+--------+-----+-----+-----+----+-----+---------+------+
+ *  | TYPE | ' ' | STATUS | ' ' | OID | ' ' | TS | ' ' | PAYLOAD | '\n' |
+ *  +------+-----+--------+-----+-----+-----+----+-----+---------+------+
  *
  *    TYPE String (non-blanks) identifying the message type
  *    ' ' A single white space to separate fields
  *    STATUS String (non-blanks), status of the message depends on message
  *      type, could contain result of operation ("SUCCESS" or "FAILURE")
  *    OID Number, id of affected object, -1 if not object related
+ *    TS timestamp for the message in epoch.
  *    PAYLOAD of the message XML base64 encoded
  *    '\n' End of message delimiter
+ *
  */
 template<typename E, //Enum class for the message types
          bool T_encode   = false, //Payload is base64 encoded
          bool T_compress = false, //Payload is compressed
-         bool T_encrypt  = false> //Payload is encrypted
+         bool T_encrypt  = false, //Payload is encrypted
+         bool T_timestamp= false> //Message includes timestamp
 class Message
 {
 public:
@@ -91,6 +94,11 @@ public:
         return _type_str._to_str(_type);
     }
 
+    static const std::string& type_str(E t)
+    {
+        return _type_str._to_str(t);
+    }
+
     /**
      *  Status of the message, can't contain blanks.
      *  Depends on message type, could contain result of
@@ -133,6 +141,21 @@ public:
         _payload = p;
     }
 
+    /**
+     *  Message timestamp, optional
+     */
+    time_t timestamp() const
+    {
+        static_assert(T_timestamp == true, "Timestamp disabled")
+        return _timestamp;
+    }
+
+    void timestamp(time_t ts)
+    {
+        static_assert(T_timestamp == true, "Timestamp disabled")
+        _timestamp = ts;
+    }
+
 private:
     /**
      *  Message fields
@@ -145,16 +168,9 @@ private:
 
     std::string _payload;
 
+    time_t _timestamp = 0;
+
     static const EString<E> _type_str;
-
-    /**
-     *  Configuration flags for the message class
-     */
-     static constexpr const bool encode   = T_encode;
-
-     static constexpr const bool compress = T_compress;
-
-     static constexpr const bool encrypt  = T_encrypt;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -163,8 +179,9 @@ private:
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool T_compress, bool T_encode, bool T_encrypt>
-int Message<E, T_compress, T_encode, T_encrypt>::parse_from(const std::string& input)
+template<typename E, bool T_compress, bool T_encode, bool T_encrypt, bool T_timestamp>
+int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
+    ::parse_from(const std::string& input)
 {
     std::istringstream is(input);
     std::string buffer, payloaz;
@@ -188,6 +205,11 @@ int Message<E, T_compress, T_encode, T_encrypt>::parse_from(const std::string& i
     is >> _status;
 
     is >> _oid;
+
+    if (T_timestamp)
+    {
+        is >> _timestamp;
+    }
 
     is >> buffer;
 
@@ -230,8 +252,9 @@ error:
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool T_compress, bool T_encode, bool T_encrypt>
-int Message<E, T_compress, T_encode, T_encrypt>::write_to(std::string& out) const
+template<typename E, bool T_compress, bool T_encode, bool T_encrypt, bool T_timestamp>
+int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
+    ::write_to(std::string& out) const
 {
     out.clear();
 
@@ -241,6 +264,12 @@ int Message<E, T_compress, T_encode, T_encrypt>::write_to(std::string& out) cons
     out += ' ';
     out += std::to_string(_oid);
     out += ' ';
+
+    if (T_timestamp)
+    {
+        out += std::to_string(_timestamp);
+        out += ' ';
+    }
 
     if (!_payload.empty())
     {
@@ -288,8 +317,9 @@ int Message<E, T_compress, T_encode, T_encrypt>::write_to(std::string& out) cons
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool T_compress, bool T_encode, bool T_encrypt>
-int Message<E, T_compress, T_encode, T_encrypt>::write_to(int fd) const
+template<typename E, bool T_compress, bool T_encode, bool T_encrypt, bool T_timestamp>
+int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
+    ::write_to(int fd) const
 {
     std::string out;
 
@@ -306,8 +336,9 @@ int Message<E, T_compress, T_encode, T_encrypt>::write_to(int fd) const
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool T_compress, bool T_encode, bool T_encrypt>
-int Message<E, T_compress, T_encode, T_encrypt>::write_to(std::ostream& oss) const
+template<typename E, bool T_compress, bool T_encode, bool T_encrypt, bool T_timestamp>
+int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
+    ::write_to(std::ostream& oss) const
 {
     std::string out;
 
