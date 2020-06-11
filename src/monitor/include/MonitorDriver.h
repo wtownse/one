@@ -27,13 +27,13 @@
 #include <cstdarg>
 
 
-class MonitorDriver : public Driver<MonitorDriverMessages>
+class MonitorDriver : public Driver<MonitorDriverMessages, true, true, true, true>
 {
 public:
-    using message_t = Message<MonitorDriverMessages>;
+    using message_t = Message<MonitorDriverMessages, true, true, true, true>;
 
     MonitorDriver(const std::string& c, const std::string& a, int ct):
-        Driver<MonitorDriverMessages>(c, a, ct)
+        Driver<MonitorDriverMessages, true, true, true, true>(c, a, ct)
     {
         register_action(MonitorDriverMessages::UNDEFINED,
                 &MonitorDriverProtocol::_undefined);

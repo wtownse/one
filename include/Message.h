@@ -45,10 +45,10 @@
  *
  */
 template<typename E, //Enum class for the message types
-         bool T_encode   = false, //Payload is base64 encoded
-         bool T_compress = false, //Payload is compressed
-         bool T_encrypt  = false, //Payload is encrypted
-         bool T_timestamp= false> //Message includes timestamp
+         bool encode   = false, //Payload is base64 encoded
+         bool compress = false, //Payload is compressed
+         bool encrypt  = false, //Payload is encrypted
+         bool has_timestamp = false> //Message includes timestamp
 class Message
 {
 public:
@@ -146,13 +146,13 @@ public:
      */
     time_t timestamp() const
     {
-        static_assert(T_timestamp == true, "Timestamp disabled")
+        static_assert(has_timestamp == true, "Timestamp disabled");
         return _timestamp;
     }
 
     void timestamp(time_t ts)
     {
-        static_assert(T_timestamp == true, "Timestamp disabled")
+        static_assert(has_timestamp == true, "Timestamp disabled");
         _timestamp = ts;
     }
 
@@ -179,8 +179,8 @@ private:
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool T_compress, bool T_encode, bool T_encrypt, bool T_timestamp>
-int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
+template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+int Message<E, compress, encode, encrypt, has_timestamp>
     ::parse_from(const std::string& input)
 {
     std::istringstream is(input);
@@ -206,7 +206,7 @@ int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
 
     is >> _oid;
 
-    if (T_timestamp)
+    if (has_timestamp)
     {
         is >> _timestamp;
     }
@@ -252,8 +252,8 @@ error:
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool T_compress, bool T_encode, bool T_encrypt, bool T_timestamp>
-int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
+template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+int Message<E, compress, encode, encrypt, has_timestamp>
     ::write_to(std::string& out) const
 {
     out.clear();
@@ -265,7 +265,7 @@ int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
     out += std::to_string(_oid);
     out += ' ';
 
-    if (T_timestamp)
+    if (has_timestamp)
     {
         out += std::to_string(_timestamp);
         out += ' ';
@@ -279,7 +279,11 @@ int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
             std::string payloaz;
             std::string payloaz64;
 
-            if (encrypt)
+            // todo This part doesn't work for all flags combinations
+            // eg. if we turn off compression, the result string is empty
+
+            // todo Should we have is_rsa_private_set() and is_rsa_public_set()??
+            if (encrypt && ssl_util::is_rsa_set())
             {
                 if (ssl_util::rsa_public_encrypt(_payload, secret) != 0)
                 {
@@ -317,8 +321,8 @@ int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool T_compress, bool T_encode, bool T_encrypt, bool T_timestamp>
-int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
+template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+int Message<E, compress, encode, encrypt, has_timestamp>
     ::write_to(int fd) const
 {
     std::string out;
@@ -336,8 +340,8 @@ int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool T_compress, bool T_encode, bool T_encrypt, bool T_timestamp>
-int Message<E, T_compress, T_encode, T_encrypt, T_timestamp>
+template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+int Message<E, compress, encode, encrypt, has_timestamp>
     ::write_to(std::ostream& oss) const
 {
     std::string out;

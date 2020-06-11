@@ -42,7 +42,7 @@ public:
      *  for all installed drivers. Must be called after load_drivers method.
      */
     void register_action(E t,
-        std::function<void(std::unique_ptr<Message<E>>)> a);
+        std::function<void(std::unique_ptr<typename D::message_t>)> a);
 
     /**
      *  Start all drivers
@@ -135,7 +135,7 @@ D * DriverManager<E, D>::get_driver(const std::string& name) const
 
 template<typename E, typename D>
 void DriverManager<E, D>::register_action(E t,
-    std::function<void(std::unique_ptr<Message<E>>)> a)
+    std::function<void(std::unique_ptr<typename D::message_t>)> a)
 {
     for (auto& driver : drivers)
     {

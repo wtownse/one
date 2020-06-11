@@ -39,11 +39,12 @@
  *  thread reads from the stream for input messages and executed the associated
  *  action in a separated (detached) thread.
  */
-template <typename E>
+template <typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
 class StreamManager
 {
 public:
-    using callback_t = std::function<void(std::unique_ptr<Message<E>>)>;
+    using message_t = Message<E, compress, encode, encrypt, has_timestamp>;
+    using callback_t = std::function<void(std::unique_ptr<message_t>)>;
 
     /* ---------------------------------------------------------------------- */
     /* ---------------------------------------------------------------------- */
@@ -58,7 +59,7 @@ public:
 
     StreamManager(callback_t error_cbk):StreamManager(-1, error_cbk){};
 
-    StreamManager():StreamManager(-1, [](std::unique_ptr<Message<E> > m){}){};
+    StreamManager():StreamManager(-1, [](std::unique_ptr<message_t > m){}){};
 
     ~StreamManager()
     {
@@ -94,7 +95,7 @@ public:
      *  Look for the associated callback for the message and execute it
      *    @param msg read from the stream
      */
-    void do_action(std::unique_ptr<Message<E> >& msg, bool threaded);
+    void do_action(std::unique_ptr<message_t>& msg, bool threaded);
 
 protected:
     /**
@@ -126,8 +127,9 @@ private:
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E>
-void StreamManager<E>::register_action(E t, callback_t a)
+template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+void StreamManager<E, compress, encode, encrypt, has_timestamp>
+    ::register_action(E t, callback_t a)
 {
     auto ret = actions.insert({t, a});
 
@@ -140,8 +142,9 @@ void StreamManager<E>::register_action(E t, callback_t a)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E>
-void StreamManager<E>::do_action(std::unique_ptr<Message<E> >& msg, bool thr)
+template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+void StreamManager<E, compress, encode, encrypt, has_timestamp>
+    ::do_action(std::unique_ptr<message_t>& msg, bool thr)
 {
     const auto it = actions.find(msg->type());
 
@@ -151,7 +154,7 @@ void StreamManager<E>::do_action(std::unique_ptr<Message<E> >& msg, bool thr)
     }
 
     const auto action = it->second;
-    Message<E> * mptr = msg.release();
+    message_t * mptr = msg.release();
 
     if (thr)
     {
@@ -167,7 +170,7 @@ void StreamManager<E>::do_action(std::unique_ptr<Message<E> >& msg, bool thr)
         lock.unlock();
 
         std::thread action_thread([this, action, mptr]{
-            action(std::unique_ptr<Message<E>>{mptr});
+            action(std::unique_ptr<message_t>{mptr});
 
             std::unique_lock<std::mutex> lock(_mutex);
 
@@ -182,15 +185,16 @@ void StreamManager<E>::do_action(std::unique_ptr<Message<E> >& msg, bool thr)
     }
     else
     {
-        action(std::unique_ptr<Message<E>>{mptr});
+        action(std::unique_ptr<message_t>{mptr});
     }
 }
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E>
-int StreamManager<E>::action_loop(int concurrency)
+template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+int StreamManager<E, compress, encode, encrypt, has_timestamp>
+    ::action_loop(int concurrency)
 {
     bool threaded = concurrency > 0;
     _concurrency  = concurrency;
@@ -209,9 +213,9 @@ int StreamManager<E>::action_loop(int concurrency)
             continue;
         }
 
-        std::unique_ptr<Message<E>> msg{new Message<E>};
+        std::unique_ptr<message_t> msg{new message_t};
 
-        msg->parse_from(line, false);
+        msg->parse_from(line);
 
         do_action(msg, threaded); //Errors are handled by the UNDEFINED action
     }

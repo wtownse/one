@@ -17,8 +17,6 @@
 #ifndef OPENNEBULA_MESSAGES_H
 #define OPENNEBULA_MESSAGES_H
 
-#include "StreamManager.h"
-
 /**
  * Messages between the Monitor daemon and OpenNebula daemon
  */
@@ -38,7 +36,5 @@ enum class OpenNebulaMessages : unsigned short int
     RAFT_STATUS,
     ENUM_MAX
 };
-
-typedef StreamManager<OpenNebulaMessages> one_stream_t;
 
 #endif /*OPENNEBULA_MESSAGES_H*/

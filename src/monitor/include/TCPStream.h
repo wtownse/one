@@ -35,14 +35,18 @@
 /**
  *
  */
-template<typename E>
-class TCPStream : public StreamManager<E>
+template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+class TCPStream : public StreamManager<E, compress, encode, encrypt, has_timestamp>
 {
 public:
-    using callback_t = std::function<void(std::unique_ptr<Message<E>>)>;
+    using message_t = Message<E, compress, encode, encrypt, has_timestamp>;
+    using callback_t = std::function<void(std::unique_ptr<message_t>)>;
 
     TCPStream(const std::string &address, unsigned int port, callback_t error):
-        StreamManager<E>(error), _socket(-1), _address(address), _port(port)
+        StreamManager<E, compress, encode, encrypt, has_timestamp>(error),
+        _socket(-1),
+        _address(address),
+        _port(port)
     {
     }
 
@@ -98,8 +102,9 @@ private:
 /* UDPStream Implementation                                                   */
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-template<typename E>
-int TCPStream<E>::action_loop(int threads, std::string& error)
+template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+int TCPStream<E, compress, encode, encrypt, has_timestamp>
+    ::action_loop(int threads, std::string& error)
 {
     struct addrinfo hints;
     struct addrinfo *res;
@@ -157,7 +162,7 @@ int TCPStream<E>::action_loop(int threads, std::string& error)
         return -1;
     }
 
-    StreamManager<E>::fd(_socket);
+    this->fd(_socket);
 
     /* ---------------------------------------------------------------------- */
     /* Start a pool of threads to read incoming TCP driver messages           */
@@ -179,11 +184,11 @@ int TCPStream<E>::action_loop(int threads, std::string& error)
                     continue;
                 }
 
-                std::unique_ptr<Message<E>> msg{new Message<E>};
+                std::unique_ptr<message_t> msg{new message_t};
 
-                msg->parse_from(line, true);
+                msg->parse_from(line);
 
-                StreamManager<E>::do_action(msg, false);
+                this->do_action(msg, false);
             }
         });
 
@@ -197,8 +202,9 @@ int TCPStream<E>::action_loop(int threads, std::string& error)
 /* -------------------------------------------------------------------------- */
 #define BUFFER_SIZE 65536
 
-template<typename E>
-int TCPStream<E>::read_line(std::string& line)
+template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+int TCPStream<E, compress, encode, encrypt, has_timestamp>
+    ::read_line(std::string& line)
 {
     char buffer[BUFFER_SIZE];
 

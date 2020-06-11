@@ -19,13 +19,14 @@
 
 #include "MonitorDriverMessages.h"
 #include "MonitorDriverProtocol.h"
+#include "UDPStream.h"
 
-class UDPMonitorDriver : public UDPStream<MonitorDriverMessages>
+class UDPMonitorDriver : public UDPStream<MonitorDriverMessages, true, true, true, true>
 {
 public:
 
     UDPMonitorDriver(const std::string& a, unsigned int p)
-        :UDPStream<MonitorDriverMessages>(a, p)
+        :UDPStream<MonitorDriverMessages, true, true, true, true>(a, p)
     {
         register_action(MonitorDriverMessages::UNDEFINED,
                 &MonitorDriverProtocol::_undefined);
