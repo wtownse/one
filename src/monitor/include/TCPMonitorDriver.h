@@ -21,12 +21,12 @@
 #include "MonitorDriverProtocol.h"
 #include "TCPStream.h"
 
-class TCPMonitorDriver : public TCPStream<MonitorDriverMessages, true, true, true, true>
+class TCPMonitorDriver : public TCPStream<monitor_msg_t>
 {
 public:
 
     TCPMonitorDriver(const std::string& a, unsigned int p)
-        :TCPStream<MonitorDriverMessages, true, true, true, true>(a, p)
+        :TCPStream(a, p)
     {
         register_action(MonitorDriverMessages::UNDEFINED,
                 &MonitorDriverProtocol::_undefined);

@@ -27,23 +27,21 @@ class HostMonitorManager;
 struct MonitorDriverProtocol
 {
 public:
-    using message_t = Message<MonitorDriverMessages, true, true, true, true>;
+    static void _undefined(std::unique_ptr<monitor_msg_t> msg);
 
-    static void _undefined(std::unique_ptr<message_t> msg);
+    static void _monitor_vm(std::unique_ptr<monitor_msg_t> msg);
 
-    static void _monitor_vm(std::unique_ptr<message_t> msg);
+    static void _beacon_host(std::unique_ptr<monitor_msg_t> msg);
 
-    static void _beacon_host(std::unique_ptr<message_t> msg);
+    static void _monitor_host(std::unique_ptr<monitor_msg_t> msg);
 
-    static void _monitor_host(std::unique_ptr<message_t> msg);
+    static void _system_host(std::unique_ptr<monitor_msg_t> msg);
 
-    static void _system_host(std::unique_ptr<message_t> msg);
+    static void _state_vm(std::unique_ptr<monitor_msg_t> msg);
 
-    static void _state_vm(std::unique_ptr<message_t> msg);
+    static void _start_monitor(std::unique_ptr<monitor_msg_t> msg);
 
-    static void _start_monitor(std::unique_ptr<message_t> msg);
-
-    static void _log(std::unique_ptr<message_t> msg);
+    static void _log(std::unique_ptr<monitor_msg_t> msg);
 
     static HostMonitorManager * hm;
 };

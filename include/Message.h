@@ -52,6 +52,8 @@ template<typename E, //Enum class for the message types
 class Message
 {
 public:
+    using msg_type = E;
+
     /**
      *  Parse the Message from an input string
      *    @param input string with the message

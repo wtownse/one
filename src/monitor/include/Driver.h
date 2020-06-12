@@ -32,11 +32,11 @@
  *  This class wraps the execution of a driver and setups a pipe as communication
  *  channel
  */
-template <typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+template <typename MSG>
 class Driver
 {
 public:
-    using message_t = Message<E, compress, encode, encrypt, has_timestamp>;
+    using message_t = MSG;
 
     /**
      *  A call to the start() method is needed to start the driver
@@ -96,7 +96,7 @@ public:
     /**
      *  Send a message to the driver
      */
-    void write(const message_t& msg) const
+    void write(const MSG& msg) const
     {
         msg.write_to(to_drv);
     };
@@ -107,7 +107,8 @@ public:
      *    @param t message type
      *    @param a callback function
      */
-    void register_action(E t, std::function<void(std::unique_ptr<message_t>)> a)
+    void register_action(typename MSG::msg_type t,
+                         std::function<void(std::unique_ptr<MSG>)> a)
     {
         streamer.register_action(t, a);
     };
@@ -140,7 +141,7 @@ private:
     /**
      *  Class to read lines from the stream
      */
-    StreamManager<E, compress, encode, encrypt, has_timestamp> streamer;
+    StreamManager<MSG> streamer;
 
     std::thread stream_thr;
 
@@ -176,8 +177,8 @@ private:
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
-void Driver<E, compress, encode, encrypt, has_timestamp>
+template<typename MSG>
+void Driver<MSG>
     ::stop_driver(int secs)
 {
     if ( pid == -1 )
@@ -216,8 +217,8 @@ void Driver<E, compress, encode, encrypt, has_timestamp>
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
-int Driver<E, compress, encode, encrypt, has_timestamp>
+template<typename MSG>
+int Driver<MSG>
     ::start_driver(std::string& error)
 {
     // Open communication pipes
@@ -323,8 +324,8 @@ int Driver<E, compress, encode, encrypt, has_timestamp>
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
-void Driver<E, compress, encode, encrypt, has_timestamp>
+template<typename MSG>
+void Driver<MSG>
     ::start_listener()
 {
     streamer.fd(from_drv);

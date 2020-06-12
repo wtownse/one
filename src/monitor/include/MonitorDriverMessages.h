@@ -17,6 +17,8 @@
 #ifndef MONITOR_DRIVER_MESSAGES_H_
 #define MONITOR_DRIVER_MESSAGES_H_
 
+#include <Message.h>
+
 /**
  * Messages between the Monitor daemon and drivers
  */
@@ -35,5 +37,7 @@ enum class MonitorDriverMessages : unsigned short int
     LOG          = 10,
     ENUM_MAX
 };
+
+using monitor_msg_t = Message<MonitorDriverMessages, true, true, true, true>;
 
 #endif /*MONITOR_DRIVER_MESSAGES_H_*/

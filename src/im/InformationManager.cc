@@ -85,7 +85,7 @@ void InformationManager::stop_monitor(int hid, const string& name, const string&
     data.add("IM_MAD", im_mad);
     string tmp;
 
-    message_t msg;
+    im_msg_t msg;
 
     msg.type(OpenNebulaMessages::STOP_MONITOR);
     msg.oid(hid);
@@ -112,7 +112,7 @@ int InformationManager::start_monitor(Host * host, bool update_remotes)
         return -1;
     }
 
-    message_t msg;
+    im_msg_t msg;
 
     msg.type(OpenNebulaMessages::START_MONITOR);
     msg.oid(host->get_oid());
@@ -136,7 +136,7 @@ void InformationManager::update_host(Host *host)
     }
 
     string tmp;
-    message_t msg;
+    im_msg_t msg;
 
     msg.type(OpenNebulaMessages::UPDATE_HOST);
     msg.oid(host->get_oid());
@@ -157,7 +157,7 @@ void InformationManager::delete_host(int hid)
         return;
     }
 
-    message_t msg;
+    im_msg_t msg;
 
     msg.type(OpenNebulaMessages::DEL_HOST);
     msg.oid(hid);
@@ -186,7 +186,7 @@ void InformationManager::raft_status(RaftManager::State state)
 
         hpool->dump(xml_hosts, "", 0, -1, false);
 
-        message_t msg;
+        im_msg_t msg;
 
         msg.type(OpenNebulaMessages::HOST_LIST);
         msg.payload(xml_hosts);
@@ -194,7 +194,7 @@ void InformationManager::raft_status(RaftManager::State state)
         imd->write(msg);
     }
 
-    message_t msg;
+    im_msg_t msg;
 
     msg.type(OpenNebulaMessages::RAFT_STATUS);
     msg.payload(RaftManager::state_to_str(state));
@@ -205,7 +205,7 @@ void InformationManager::raft_status(RaftManager::State state)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-void InformationManager::_undefined(unique_ptr<message_t> msg)
+void InformationManager::_undefined(unique_ptr<im_msg_t> msg)
 {
     NebulaLog::warn("InM", "Received undefined message: " + msg->payload() +
             "from host: " + to_string(msg->oid()));
@@ -215,7 +215,7 @@ void InformationManager::_undefined(unique_ptr<message_t> msg)
 /* -------------------------------------------------------------------------- */
 /* HOST_STATE - <state_str> <optional_desciption>                             */
 
-void InformationManager::_host_state(unique_ptr<message_t> msg)
+void InformationManager::_host_state(unique_ptr<im_msg_t> msg)
 {
     NebulaLog::ddebug("InM", "HOST_STATE update from host: " +
         to_string(msg->oid()) + ". Host information: " + msg->payload());
@@ -281,7 +281,7 @@ void InformationManager::_host_state(unique_ptr<message_t> msg)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-void InformationManager::_host_system(unique_ptr<message_t> msg)
+void InformationManager::_host_system(unique_ptr<im_msg_t> msg)
 {
     NebulaLog::ddebug("InM", "HOST_SYSTEM update from host: " +
         to_string(msg->oid()) + ". Host information: " + msg->payload());
@@ -397,7 +397,7 @@ static LCMAction::Actions test_and_trigger(const string& state_str,
 }
 
 
-void InformationManager::_vm_state(unique_ptr<message_t> msg)
+void InformationManager::_vm_state(unique_ptr<im_msg_t> msg)
 {
     LifeCycleManager* lcm = Nebula::instance().get_lcm();
 

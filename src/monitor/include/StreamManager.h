@@ -39,12 +39,11 @@
  *  thread reads from the stream for input messages and executed the associated
  *  action in a separated (detached) thread.
  */
-template <typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+template <typename MSG>
 class StreamManager
 {
 public:
-    using message_t = Message<E, compress, encode, encrypt, has_timestamp>;
-    using callback_t = std::function<void(std::unique_ptr<message_t>)>;
+    using callback_t = std::function<void(std::unique_ptr<MSG>)>;
 
     /* ---------------------------------------------------------------------- */
     /* ---------------------------------------------------------------------- */
@@ -54,12 +53,12 @@ public:
      */
     StreamManager(int __fd, callback_t error_cbk):_fd(__fd)
     {
-        register_action(E::UNDEFINED, error_cbk);
+        register_action(MSG::msg_type::UNDEFINED, error_cbk);
     };
 
     StreamManager(callback_t error_cbk):StreamManager(-1, error_cbk){};
 
-    StreamManager():StreamManager(-1, [](std::unique_ptr<message_t > m){}){};
+    StreamManager():StreamManager(-1, [](std::unique_ptr<MSG> m){}){};
 
     ~StreamManager()
     {
@@ -72,7 +71,7 @@ public:
      *   @param t the message type
      *   @param a callback function to be executed
      */
-    void register_action(E t, callback_t a);
+    void register_action(typename MSG::msg_type t, callback_t a);
 
     /**
      *  Reads messages from the stream and execute callbacks. This method should
@@ -95,7 +94,7 @@ public:
      *  Look for the associated callback for the message and execute it
      *    @param msg read from the stream
      */
-    void do_action(std::unique_ptr<message_t>& msg, bool threaded);
+    void do_action(std::unique_ptr<MSG>& msg, bool threaded);
 
 protected:
     /**
@@ -116,7 +115,7 @@ private:
 
     int _concurrency;
 
-    std::map<E, callback_t > actions;
+    std::map<typename MSG::msg_type, callback_t > actions;
 
     StringBuffer buffer;
 };
@@ -127,9 +126,9 @@ private:
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
-void StreamManager<E, compress, encode, encrypt, has_timestamp>
-    ::register_action(E t, callback_t a)
+template<typename MSG>
+void StreamManager<MSG>
+    ::register_action(typename MSG::msg_type t, callback_t a)
 {
     auto ret = actions.insert({t, a});
 
@@ -142,9 +141,9 @@ void StreamManager<E, compress, encode, encrypt, has_timestamp>
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
-void StreamManager<E, compress, encode, encrypt, has_timestamp>
-    ::do_action(std::unique_ptr<message_t>& msg, bool thr)
+template<typename MSG>
+void StreamManager<MSG>
+    ::do_action(std::unique_ptr<MSG>& msg, bool thr)
 {
     const auto it = actions.find(msg->type());
 
@@ -154,7 +153,7 @@ void StreamManager<E, compress, encode, encrypt, has_timestamp>
     }
 
     const auto action = it->second;
-    message_t * mptr = msg.release();
+    MSG * mptr = msg.release();
 
     if (thr)
     {
@@ -170,7 +169,7 @@ void StreamManager<E, compress, encode, encrypt, has_timestamp>
         lock.unlock();
 
         std::thread action_thread([this, action, mptr]{
-            action(std::unique_ptr<message_t>{mptr});
+            action(std::unique_ptr<MSG>{mptr});
 
             std::unique_lock<std::mutex> lock(_mutex);
 
@@ -185,15 +184,15 @@ void StreamManager<E, compress, encode, encrypt, has_timestamp>
     }
     else
     {
-        action(std::unique_ptr<message_t>{mptr});
+        action(std::unique_ptr<MSG>{mptr});
     }
 }
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
-int StreamManager<E, compress, encode, encrypt, has_timestamp>
+template<typename MSG>
+int StreamManager<MSG>
     ::action_loop(int concurrency)
 {
     bool threaded = concurrency > 0;
@@ -213,7 +212,7 @@ int StreamManager<E, compress, encode, encrypt, has_timestamp>
             continue;
         }
 
-        std::unique_ptr<message_t> msg{new message_t};
+        std::unique_ptr<MSG> msg{new MSG};
 
         msg->parse_from(line);
 

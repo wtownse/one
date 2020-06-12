@@ -31,12 +31,12 @@ HostMonitorManager * MonitorDriverProtocol::hm = nullptr;
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-void MonitorDriverProtocol::_undefined(unique_ptr<message_t> msg)
+void MonitorDriverProtocol::_undefined(unique_ptr<monitor_msg_t> msg)
 {
     NebulaLog::info("MDP", "Received UNDEFINED msg: " + msg->payload());
 }
 
-static void log_message(const MonitorDriverProtocol::message_t& msg)
+static void log_message(const monitor_msg_t& msg)
 {
     if ( NebulaLog::log_level() < Log::DDEBUG )
     {
@@ -60,7 +60,7 @@ static void log_message(const MonitorDriverProtocol::message_t& msg)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-void MonitorDriverProtocol::_monitor_vm(unique_ptr<message_t> msg)
+void MonitorDriverProtocol::_monitor_vm(unique_ptr<monitor_msg_t> msg)
 {
     log_message(*msg);
 
@@ -176,7 +176,7 @@ void MonitorDriverProtocol::_monitor_vm(unique_ptr<message_t> msg)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-void MonitorDriverProtocol::_beacon_host(unique_ptr<message_t> msg)
+void MonitorDriverProtocol::_beacon_host(unique_ptr<monitor_msg_t> msg)
 {
     log_message(*msg);
 
@@ -198,7 +198,7 @@ void MonitorDriverProtocol::_beacon_host(unique_ptr<message_t> msg)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-void MonitorDriverProtocol::_monitor_host(unique_ptr<message_t> msg)
+void MonitorDriverProtocol::_monitor_host(unique_ptr<monitor_msg_t> msg)
 {
     log_message(*msg);
 
@@ -243,7 +243,7 @@ void MonitorDriverProtocol::_monitor_host(unique_ptr<message_t> msg)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-void MonitorDriverProtocol::_system_host(unique_ptr<message_t> msg)
+void MonitorDriverProtocol::_system_host(unique_ptr<monitor_msg_t> msg)
 {
     log_message(*msg);
 
@@ -269,7 +269,7 @@ void MonitorDriverProtocol::_system_host(unique_ptr<message_t> msg)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-void MonitorDriverProtocol::_state_vm(unique_ptr<message_t> msg)
+void MonitorDriverProtocol::_state_vm(unique_ptr<monitor_msg_t> msg)
 {
     log_message(*msg);
 
@@ -305,7 +305,7 @@ void MonitorDriverProtocol::_state_vm(unique_ptr<message_t> msg)
  * It includes all messages that may be sent by probes, defined in
  * MonitorDriverMessages. This message is constructed in monitord_client.rb
  */
-void MonitorDriverProtocol::_start_monitor(unique_ptr<message_t> msg)
+void MonitorDriverProtocol::_start_monitor(unique_ptr<monitor_msg_t> msg)
 {
     log_message(*msg);
 
@@ -365,7 +365,7 @@ void MonitorDriverProtocol::_start_monitor(unique_ptr<message_t> msg)
 
         ssl_util::base64_decode(payload64, payload);
 
-        unique_ptr<message_t> m(new message_t);
+        unique_ptr<monitor_msg_t> m(new monitor_msg_t);
 
         m->type(it);
 
@@ -405,7 +405,7 @@ void MonitorDriverProtocol::_start_monitor(unique_ptr<message_t> msg)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-void MonitorDriverProtocol::_log(unique_ptr<message_t> msg)
+void MonitorDriverProtocol::_log(unique_ptr<monitor_msg_t> msg)
 {
     auto log_type = Log::INFO;
 

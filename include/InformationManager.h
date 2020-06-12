@@ -27,12 +27,10 @@ class Host;
 class VirtualMachinePool;
 
 class InformationManager :
-    public DriverManager<OpenNebulaMessages, Driver<OpenNebulaMessages, true, true, false, false>>,
+    public DriverManager<OpenNebulaMessages, Driver<im_msg_t>>,
     public ActionListener
 {
 public:
-    using message_t = Message<OpenNebulaMessages, true, true, false, false>;
-
     InformationManager(
         HostPool * _hpool,
         VirtualMachinePool * _vmpool,
@@ -105,22 +103,22 @@ protected:
     /**
      *  Received undefined message -> print error
      */
-    static void _undefined(unique_ptr<message_t> msg);
+    static void _undefined(unique_ptr<im_msg_t> msg);
 
     /**
      *  Message HOST_STATE update from monitor
      */
-    void _host_state(unique_ptr<message_t> msg);
+    void _host_state(unique_ptr<im_msg_t> msg);
 
     /**
      *  Message HOST_SYSTEM update from monitor
      */
-    void _host_system(unique_ptr<message_t> msg);
+    void _host_system(unique_ptr<im_msg_t> msg);
 
     /**
      *  Message VM_STATE from monitor
      */
-    void _vm_state(unique_ptr<message_t> msg);
+    void _vm_state(unique_ptr<im_msg_t> msg);
 
 private:
     /**

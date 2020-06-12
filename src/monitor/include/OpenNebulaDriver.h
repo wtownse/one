@@ -44,16 +44,16 @@
  *   Template parameter is a enumeration of protocol message types that
  *   MUST include UNDEFINED, INIT and FINALIZE message types.
  */
-template <typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
+template <typename MSG>
 class OpenNebulaDriver
 {
 public:
 
     OpenNebulaDriver() : oned_reader(0, &OpenNebulaDriver::_undefined)
     {
-        register_action(E::INIT, &OpenNebulaDriver::_init);
+        register_action(MSG::msg_type::INIT, &OpenNebulaDriver::_init);
 
-        register_action(E::FINALIZE, &OpenNebulaDriver::_finalize);
+        register_action(MSG::msg_type::FINALIZE, &OpenNebulaDriver::_finalize);
     }
 
     virtual ~OpenNebulaDriver() = default;
@@ -68,19 +68,20 @@ public:
     }
 
 protected:
-    using message_t = Message<E, compress, encode, encrypt, has_timestamp>;
+    using message_t = MSG;
 
     /**
      *  Streamer for stdin
      */
-    StreamManager<E, compress, encode, encrypt, has_timestamp> oned_reader;
+    StreamManager<MSG> oned_reader;
 
     /**
      *  Register an action when a message is received in the driver stream
      *    @param m the OpenNebulaMessage recevied
      *    @param f the message callback
      */
-    void register_action(E m, std::function<void(std::unique_ptr<message_t>)> f)
+    void register_action(typename MSG::msg_type m,
+                         std::function<void(std::unique_ptr<message_t>)> f)
     {
         oned_reader.register_action(m, f);
     }

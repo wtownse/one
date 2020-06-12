@@ -35,15 +35,14 @@
 /**
  *
  */
-template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
-class UDPStream : public StreamManager<E, compress, encode, encrypt, has_timestamp>
+template<typename MSG>
+class UDPStream : public StreamManager<MSG>
 {
 public:
-    using message_t = Message<E, compress, encode, encrypt, has_timestamp>;
-    using callback_t = std::function<void(std::unique_ptr<message_t>)>;
+    using callback_t = std::function<void(std::unique_ptr<MSG>)>;
 
     UDPStream(const std::string &address, unsigned int port, callback_t error):
-        StreamManager<E, compress, encode, encrypt, has_timestamp>(error),
+        StreamManager<MSG>(error),
         _socket(-1),
         _address(address),
         _port(port)
@@ -102,8 +101,8 @@ private:
 /* UDPStream Implementation                                                   */
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
-int UDPStream<E, compress, encode, encrypt, has_timestamp>
+template<typename MSG>
+int UDPStream<MSG>
     ::action_loop(int threads, std::string& error)
 {
     struct addrinfo hints;
@@ -166,7 +165,7 @@ int UDPStream<E, compress, encode, encrypt, has_timestamp>
                     continue;
                 }
 
-                std::unique_ptr<message_t> msg{new message_t};
+                std::unique_ptr<MSG> msg{new MSG};
 
                 msg->parse_from(line);
 
@@ -184,8 +183,8 @@ int UDPStream<E, compress, encode, encrypt, has_timestamp>
 /* -------------------------------------------------------------------------- */
 #define MESSAGE_SIZE 65536
 
-template<typename E, bool compress, bool encode, bool encrypt, bool has_timestamp>
-int UDPStream<E, compress, encode, encrypt, has_timestamp>
+template<typename MSG>
+int UDPStream<MSG>
     ::read_line(std::string& line)
 {
     char   buffer[MESSAGE_SIZE];

@@ -17,6 +17,8 @@
 #ifndef OPENNEBULA_MESSAGES_H
 #define OPENNEBULA_MESSAGES_H
 
+#include "Message.h"
+
 /**
  * Messages between the Monitor daemon and OpenNebula daemon
  */
@@ -36,5 +38,7 @@ enum class OpenNebulaMessages : unsigned short int
     RAFT_STATUS,
     ENUM_MAX
 };
+
+using im_msg_t = Message<OpenNebulaMessages, true, true, false, false>;
 
 #endif /*OPENNEBULA_MESSAGES_H*/

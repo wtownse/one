@@ -19,8 +19,7 @@
 #include "OpenNebulaMessages.h"
 
 template<>
-const EString<MonitorDriverMessages> Message<MonitorDriverMessages, true, true, true, true>
-    ::_type_str({
+const EString<MonitorDriverMessages> monitor_msg_t::_type_str({
     {"UNDEFINED", MonitorDriverMessages::UNDEFINED},
     {"INIT", MonitorDriverMessages::INIT},
     {"FINALIZE", MonitorDriverMessages::FINALIZE},
@@ -35,8 +34,7 @@ const EString<MonitorDriverMessages> Message<MonitorDriverMessages, true, true, 
 });
 
 template<>
-const EString<OpenNebulaMessages> Message<OpenNebulaMessages, true, true, false, false>
-    ::_type_str({
+const EString<OpenNebulaMessages> im_msg_t::_type_str({
     {"UNDEFINED", OpenNebulaMessages::UNDEFINED},
     {"INIT", OpenNebulaMessages::INIT},
     {"FINALIZE", OpenNebulaMessages::FINALIZE},

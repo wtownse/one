@@ -26,7 +26,7 @@ class HostMonitorManager;
  *  This class implements the Monitor Driver interface for oned.
  */
 class OneMonitorDriver :
-    public OpenNebulaDriver<OpenNebulaMessages, true, true, false, false>
+    public OpenNebulaDriver<Message<OpenNebulaMessages, true, true, false, false>>
 {
 public:
     OneMonitorDriver(HostMonitorManager * _hm);
