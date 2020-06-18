@@ -15,6 +15,7 @@
 #--------------------------------------------------------------------------- #
 
 require 'shellwords'
+require 'English'
 
 ################################################################################
 # The VNMMAD module provides the basic abstraction to implement custom
@@ -194,6 +195,16 @@ module VNMMAD
     # Returns true if the driver is executing action pre
     def self.pre_action?
         File.basename($PROGRAM_NAME) == 'pre'
+    end
+
+    # Checks wether a NIC exist or not. Returns true/false and the NIC info
+    def nic_exist?(name)
+        text = `#{command(:ip)} -d link show #{name}`
+        status = $CHILD_STATUS.exitstatus
+
+        return true, text if status == 0
+
+        [false, text]
     end
 
 end
