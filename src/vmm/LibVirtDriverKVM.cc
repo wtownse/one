@@ -875,6 +875,11 @@ int LibVirtDriver::deployment_description_kvm(
             }
         }
 
+        ostringstream oss;
+
+        oss << "type: \"" << type << "\" disk_type: \"" << disk_type << "\"";
+        NebulaLog::log("DBGCEPH",Log::INFO, oss.str());
+
         // ---- Disk type and source for the image ----
 
         if ( type == "BLOCK" )

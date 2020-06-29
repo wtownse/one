@@ -533,6 +533,7 @@ void VirtualMachineDisk::clear_resize(bool restore)
 void VirtualMachineDisk::set_types(const string& ds_name)
 {
     string type = vector_value("TYPE");
+    ostringstream oss;
 
     switch(Image::str_to_disk_type(type))
     {
@@ -554,6 +555,9 @@ void VirtualMachineDisk::set_types(const string& ds_name)
             replace("TYPE", ds_name);
             break;
     }
+
+    oss << "ds_name: \"" << ds_name << "\", type: \"" << type << "\"";
+    NebulaLog::log("DBGCEPH",Log::INFO, oss.str());
 
     replace("DISK_TYPE", ds_name);
 }
