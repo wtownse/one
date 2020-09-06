@@ -219,8 +219,10 @@ int RequestManager::setup_socket()
     int rc;
     int yes = 1;
 
-    struct addrinfo hints = {0};
+    struct addrinfo hints;
     struct addrinfo * result;
+
+    memset(&hints, 0, sizeof hints);
 
     hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
@@ -317,6 +319,8 @@ int RequestManager::start()
     NebulaLog::log("ReM",Log::INFO,oss);
 
     pthread_create(&rm_xml_server_thread,&pattr,rm_xml_server_loop,(void *)this);
+
+    NebulaLog::log("ReM",Log::INFO,"Request Manager started");
 
     return 0;
 }

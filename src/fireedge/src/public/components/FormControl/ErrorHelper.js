@@ -1,6 +1,13 @@
 import React from 'react';
+import { string } from 'prop-types';
 
-import { Box, darken, lighten, makeStyles, Typography } from '@material-ui/core';
+import {
+  Box,
+  darken,
+  lighten,
+  makeStyles,
+  Typography
+} from '@material-ui/core';
 import { Info as InfoIcon } from '@material-ui/icons';
 
 import { Translate } from 'client/components/HOC';
@@ -20,22 +27,31 @@ const useStyles = makeStyles(theme => {
     },
     text: {
       ...theme.typography.body1,
-      paddingLeft: theme.spacing(1)
+      paddingLeft: theme.spacing(1),
+      overflowWrap: 'anywhere'
     }
   };
 });
 
-const ErrorHelper = ({ label = 'Error', ...rest }) => {
+const ErrorHelper = ({ label, ...rest }) => {
   const classes = useStyles();
 
   return (
     <Box className={classes.root} {...rest}>
       <InfoIcon className={classes.icon} />
       <Typography className={classes.text} data-cy="error-text">
-        <Translate word={label} />
+        {label}
       </Typography>
     </Box>
   );
+};
+
+ErrorHelper.propTypes = {
+  label: string
+};
+
+ErrorHelper.defaultProps = {
+  label: 'Error'
 };
 
 export default ErrorHelper;

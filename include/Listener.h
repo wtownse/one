@@ -149,8 +149,6 @@ protected:
      */
     void start()
     {
-        end = false;
-
         loop_thread = std::thread([&] {
             NebulaLog::info("Lis", name + " started.");
 
@@ -162,19 +160,25 @@ protected:
 
     void loop()
     {
-        std::unique_lock<std::mutex> ul(lock);
+        end = false;
 
         while (true)
         {
-            cond.wait(ul, [&]{return (end || !pending.empty());});
+            std::function<void()> fn;
 
-            if (end)
             {
-                break;
-            }
+                std::unique_lock<std::mutex> ul(lock);
 
-            auto fn = pending.front();
-            pending.pop();
+                cond.wait(ul, [&]{return (end || !pending.empty());});
+
+                if (end)
+                {
+                    break;
+                }
+
+                fn = pending.front();
+                pending.pop();
+            }
 
             fn();
         }

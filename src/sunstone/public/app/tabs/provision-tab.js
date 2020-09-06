@@ -397,6 +397,17 @@ define(function(require) {
           "start_time": start_time,
           "end_time": end_time
         };
+        
+        OpenNebula.VM.accounting({
+          //timeout: true,
+          success: function(req, response){
+            var context = $("#provision_group_vms_dashboard");
+            Accounting.fillAccounting(context, req, response, false);
+          },
+          error: Notifier.onError,
+          data: options
+        });
+
         OpenNebula.VM.list({
           timeout: true,
           success: function (request, item_list){
@@ -460,9 +471,9 @@ define(function(require) {
                 default_user_quotas.VM_QUOTA.VM.RUNNING_VMS
               ){
                 var vms = QuotaWidgets.quotaInfo(
-                    user.VM_QUOTA.VM.VMS_USED,
-                    user.VM_QUOTA.VM.RUNNING_VMS,
-                    default_user_quotas.VM_QUOTA.VM.RUNNING_VMS);
+                  user.VM_QUOTA.VM.RUNNING_VMS_USED,
+                  user.VM_QUOTA.VM.RUNNING_VMS,
+                  default_user_quotas.VM_QUOTA.VM.RUNNING_VMS);
                 $("#provision_dashboard_rvms_percentage").html(vms["percentage"]);
                 $("#provision_dashboard_rvms_str").html(vms["str"]);
                 $("#provision_dashboard_rvms_meter").val(vms["percentage"]);
@@ -572,9 +583,9 @@ define(function(require) {
             if (group && group.VM_QUOTA && !$.isEmptyObject(group.VM_QUOTA)){
                 var default_group_quotas = QuotaDefaults.default_quotas(group.DEFAULT_GROUP_QUOTAS);
                 var vms = QuotaWidgets.quotaInfo(
-                    group.VM_QUOTA.VM.VMS_USED,
-                    group.VM_QUOTA.VM.VMS,
-                    default_group_quotas.VM_QUOTA.VM.VMS);
+                  group.VM_QUOTA.VM.RUNNING_VMS_USED,
+                  group.VM_QUOTA.VM.RUNNING_VMS,
+                  default_group_quotas.VM_QUOTA.VM.VMS);
                 $("#provision_dashboard_group_rvms_percentage").html(vms["percentage"]);
                 $("#provision_dashboard_group_rvms_str").html(vms["str"]);
                 $("#provision_dashboard_group_rvms_meter").val(vms["percentage"]);

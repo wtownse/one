@@ -14,22 +14,28 @@
 /* -------------------------------------------------------------------------- */
 
 import React from 'react';
-import { Box, Link, useTheme } from '@material-ui/core';
-import classnames from 'classnames';
+import { Box, Link } from '@material-ui/core';
 
+import footerStyles from 'client/components/Footer/styles';
 import { by } from 'client/constants';
 
 const { text, url } = by;
 
-const Footer = () => {
-  const theme = useTheme();
+const Footer = React.memo(() => {
+  const classes = footerStyles();
 
   return (
-    <Box color={theme.palette.primary.light} className={classnames('footer')}>
-      {`❤️ by `}
-      <Link href={url}>{text}</Link>
+    <Box className={classes.footer} component="footer">
+      {'Made with'}
+      <span className={classes.heartIcon} role="img" aria-label="heart-emoji">
+        {'❤️'}
+      </span>
+      {'by'}
+      <Link href={url} className={classes.link}>
+        {text}
+      </Link>
     </Box>
   );
-};
+});
 
 export default Footer;

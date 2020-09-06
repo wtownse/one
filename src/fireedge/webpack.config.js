@@ -13,15 +13,13 @@
 /* limitations under the License.                                             */
 /* -------------------------------------------------------------------------- */
 
+const webpack = require('webpack');
 const nodeExternals = require('webpack-node-externals');
 const path = require('path');
-const { getConfig } = require('./src/utils/');
-const { defaultWebpackMode } = require('./src/utils/constants');
-
-// settings
-const appConfig = getConfig();
-const mode = appConfig.MODE || defaultWebpackMode;
-const devtool = mode === defaultWebpackMode ? 'inline-source-map' : '';
+const {
+  defaultWebpackMode,
+  defaultWebpackDevTool
+} = require('./src/utils/constants/defaults');
 
 const js = {
   test: /\.js$/,
@@ -40,18 +38,28 @@ const js = {
   }
 };
 
+const fonts = {
+  test: /\.(ttf|woff|woff2|svg|eot)$/i,
+  include: [path.resolve(__dirname, 'src/public/assets/fonts/')],
+  use: {
+    loader: 'file-loader',
+    options: {
+      name: '[name].[ext]',
+      outputPath: 'fonts'
+    }
+  }
+};
+
 const alias = {
   alias: {
     server: path.resolve(__dirname, 'src/'),
-    client: path.resolve(__dirname, 'src/public/'),
-    'server-entrypoints': path.resolve(__dirname, 'src/routes/entrypoints/'),
-    'server-api': path.resolve(__dirname, 'src/routes/api/')
+    client: path.resolve(__dirname, 'src/public/')
   },
   extensions: ['.js']
 };
 
 const serverConfig = {
-  mode,
+  mode: defaultWebpackMode,
   target: 'node',
   node: {
     __dirname: false
@@ -61,24 +69,24 @@ const serverConfig = {
     'index.js': path.resolve(__dirname, 'src/index.js')
   },
   module: {
-    rules: [js]
+    rules: [js, fonts]
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name]'
   },
   resolve: alias,
-  devtool
+  devtool: defaultWebpackDevTool
 };
 
 const clientConfig = {
-  mode,
+  mode: defaultWebpackMode,
   target: 'web',
   entry: {
     'app.js': path.resolve(__dirname, 'src/public/front-app.js')
   },
   module: {
-    rules: [js]
+    rules: [js, fonts]
   },
   optimization: {
     splitChunks: {
@@ -90,10 +98,24 @@ const clientConfig = {
     filename: '[name]'
   },
   resolve: alias,
-  devtool
+  devtool: defaultWebpackDevTool
 };
 
-module.exports = env => {
+module.exports = (env, argv) => {
+  if (argv && argv.mode !== defaultWebpackMode) {
+    [clientConfig.mode, serverConfig.mode] = Array(2).fill('production');
+    [clientConfig.devtool, serverConfig.devtool] = Array(2).fill('');
+  } else if (argv && argv.session && argv.session === 'false') {
+    const pluginProcessEnv = [
+      new webpack.DefinePlugin({
+        'process.env': {
+          session: JSON.stringify(argv.session)
+        }
+      })
+    ];
+    clientConfig.plugins = pluginProcessEnv;
+    serverConfig.plugins = pluginProcessEnv;
+  }
   let build = [];
   if (env) {
     switch (env) {

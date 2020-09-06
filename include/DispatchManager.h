@@ -485,15 +485,6 @@ private:
      *  Frees the resources associated to a VM: disks, ip addresses and Quotas
      */
     void free_vm_resources(VirtualMachine * vm, bool check_images);
-
-    /**
-    * Fill a template only with the necessary attributes to update the quotas
-    *   @param vm with the attributes
-    *   @param template that will be filled
-    *   @param only_running true to not add CPU, MEMORY and VMS counters
-    */
-    void get_quota_template(VirtualMachine * vm,
-            VirtualMachineTemplate& quota_tmpl, bool only_running) const;
 };
 
 #endif /*DISPATCH_MANAGER_H*/

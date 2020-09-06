@@ -711,32 +711,35 @@ define(function(require) {
    * @param  {object} attr structure as returned by parse
    * @param  {jQuery} div jQuery selector for the div to attach the html to
    */
-  function _insertAttributeInputMB(attr, div, inputUnit = true) {
+  function _insertAttributeInputMB(attr, div, displayUnit=true, editUnit = true) {
     // Modified input for GB
     var attr_gb = $.extend({}, attr);
     if (attr.type == "range"){
       attr.tick_size = 1024;
     }
-
-    var selectInput = inputUnit
-      ? "<div class=\"input-group-button\">"+
-        "<select class=\"mb_input_unit\">" +
-          "<option value=\"MB\">"+Locale.tr("MB")+"</option>" +
-          "<option value=\"GB\">"+Locale.tr("GB")+"</option>" +
-          "<option value=\"TB\">"+Locale.tr("TB")+"</option>" +
-        "</select>" +
-      "</div>" : "<span style='margin-left:0.5rem'>MB</span>";
+    var select = '';
+    var selectInput = editUnit? '': 'disabled';
+    if(displayUnit){
+      var select = "<select class=\"mb_input_unit\" "+selectInput+">" +
+        "<option value=\"MB\">"+Locale.tr("MB")+"</option>" +
+        "<option value=\"GB\">"+Locale.tr("GB")+"</option>" +
+        "<option value=\"TB\">"+Locale.tr("TB")+"</option>" +
+      "</select>";
+    }
 
     div.html(
-      "<div class=\"input-group mb_input_wrapper\"" +
-        (!inputUnit && " style='display:flex;align-items:center;'") + ">"+
+      "<div class=\"input-group mb_input_wrapper\" style=\"display:flex;align-items:center;\"" + ">"+
         "<div class=\"mb_input input-group-field\">" +
           _attributeInput(attr) +
-        "</div>" + selectInput + "</div>");
-    _setupAttributeInputMB(div, inputUnit);
+        "</div>"+
+          "<div class=\"input-group-button\">"+ 
+            select+
+          "</div>"+
+        "</div>");
+    _setupAttributeInputMB(div);
   }
 
-  function _setupAttributeInputMB(context, inputUnit) {
+  function _setupAttributeInputMB(context) {
     var base = 1024;
     var baseCal = 1;
     var unit = "MB";
@@ -768,7 +771,7 @@ define(function(require) {
         $("input, select", contextElement).val(valueInMB);
         valueInUnit = valueInMB / baseCal;
       }
-      $("input.visor", contextElement).val(inputUnit ? valueInUnit : valueInMB);
+      $("input.visor", contextElement).val(valueInUnit);
       var contextUnit = contextElement.siblings(".input-group-button");
       $(".mb_input_unit", contextUnit).val(unit).trigger("change");
     }
@@ -877,7 +880,8 @@ define(function(require) {
         input = "<select "+wizard_field+" "+required+">";
         $.each(attr.options, function(){
           var selected = (attr.initial == this);
-          input +=  "<option value='"+this+"' "+(selected? "selected" : "")+">"+this+"</option>";
+          var trimmedValue = $.trim(this);
+          input +=  "<option value='"+trimmedValue+"' "+(selected? "selected" : "")+">"+trimmedValue+"</option>";
         });
         input += "</select>";
       break;

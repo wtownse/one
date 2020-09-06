@@ -63,12 +63,12 @@ define(function(require) {
   }
 
   function _calculateSockets(context){
-    var vcpu = $("div.vcpu_input input", context).val();
+    var vcpu = $("div.vcpu_input input, div.vcpu_input select", context).val();
     var cores_per_socket = $("#CORES_PER_SOCKET").val();
 
     if ((vcpu != "") && (cores_per_socket != "")){
       $("div.socket_info").show();
-      $("#number_sockets").text(vcpu/cores_per_socket);
+      $("#number_sockets").text(parseInt(vcpu, 10)/parseInt(cores_per_socket, 10));
     }
     else{
       $("div.socket_info").hide();
@@ -80,7 +80,8 @@ define(function(require) {
     $("#CORES_PER_SOCKET", context).append($('<option>').val("").text(""));
     var visor = $("div.vcpu_input input.visor")
     var slider = $("div.vcpu_input input");
-    var from = visor.length? visor : slider;
+    var select = $("div.vcpu_input select");
+    var from = visor.length? visor : slider.length ? slider : select;
     var vcpuValue = from.val();
     for (var i = 1; i <= vcpuValue; i++){
       if (vcpuValue%i === 0){
@@ -160,24 +161,43 @@ define(function(require) {
     }
 
     $("div.vcpu_input", context).html(input);
-    $("div.vcpu_input input", context).val(attr.min);
+
+    var cpuInput = $("div.cpu_input input, div.cpu_input select", context);
+    var vcpuInput = $("div.vcpu_input input, div.vcpu_input select", context);
+    vcpuInput.off();
 
     if (Config.isFeatureEnabled("instantiate_cpu_factor")){
-      $("div.cpu_input input", context).prop("disabled", true);
-      var vcpuValue = $("div.vcpu_input input", context).val();
-      if (vcpuValue !== ""){
-        $("div.cpu_input input", context).val($("div.vcpu_input input", context).val() * Config.scaleFactor);
-      } else {
-        $("div.cpu_input input", context).val("");
-      }
-      $("div.vcpu_input input", context).on("change", function(){
-        var vcpuValue = $("div.vcpu_input input", context).val();
-        if (vcpuValue !== ""){
-          $("div.cpu_input input", context).val(vcpuValue * Config.scaleFactor);
+      vcpuInput.on("change keyup", function() {
+        var vcpuValue = $(this).val();
+        if (vcpuValue !== "") {
+          var scaleFactorValue = vcpuValue * Config.scaleFactor
+          var minCpuValue = $("div.cpu_input input.visor", context).attr("min");
+          var maxCpuValue = $("div.cpu_input input.visor", context).attr("max");
+
+          if (scaleFactorValue <= minCpuValue) {
+            cpuInput.val(minCpuValue);
+          }
+          else if (scaleFactorValue >= maxCpuValue) {
+            cpuInput.val(maxCpuValue);
+          }
+          else {
+            if (cpuInput.is("select")) {
+              if ($("option[value='"+ scaleFactorValue +"']", cpuInput).length !== 0) {
+                cpuInput.val(scaleFactorValue);
+              }
+            }
+            else cpuInput.val(scaleFactorValue);
+          }
         } else {
-          $("div.cpu_input input", context).val("");
+          cpuInput.val("");
         }
       });
+      
+      cpuInput.prop("disabled", true);
+      var vcpuValue = vcpuInput.val();
+      if (vcpuValue && vcpuValue !== "") {
+        vcpuInput.trigger("change")
+      } 
     }
 
     if (element.TEMPLATE.HYPERVISOR == "vcenter"){
@@ -190,22 +210,22 @@ define(function(require) {
         $('#CORES_PER_SOCKET option[value="' + element.TEMPLATE.CORES_PER_SOCKET + '"]').prop('selected', true);
       }
 
-      $("div.vcpu_input input", context).off().on("change keyup", function(e){
+      vcpuInput.on("change keyup", function(e){
         element = $("div.vcpu_input input.visor", context);
-        if(element.length){
-          min = element.attr("data-min");
-          max = element.attr("data-max");
+        if (element.length) {
+          min = element.attr("min");
+          max = element.attr("max");
           if(parseInt(element.val(),10) >= parseInt(min,10) && parseInt(element.val(),10)<= parseInt(max,10)){
             $("div.vcpu_input input", context).val(element.val());
             _generateCores(context);
             $('#CORES_PER_SOCKET option[value=""]').prop('selected', true);
             _calculateSockets(context);
-          }else{
+          } else{
             element.val(max);
-            $("div.vcpu_input input", context).val(max);
+            $("div.vcpu_input input", context).val(max).change();
             Notifier.notifyError(Locale.tr("The value goes out of the allowed limits"));
           }
-        }else{
+        } else{
           _generateCores(context);
           $('#CORES_PER_SOCKET option[value=""]').prop('selected', true);
           _calculateSockets(context);
@@ -246,7 +266,7 @@ define(function(require) {
     }
     
     attr.visor = attr.type === "number";
-    UserInputs.insertAttributeInputMB(attr, $("div.memory_input", context), false);
+    UserInputs.insertAttributeInputMB(attr, $("div.memory_input", context), true, attr.type === "number");
 
     if (Config.isFeatureEnabled("instantiate_hide_cpu")){
       $(".vcpu_input input", context).prop("required", true);

@@ -36,11 +36,9 @@ using namespace std;
 /* ************************************************************************** */
 
 VirtualMachineManager::VirtualMachineManager(
-    int                             _vm_limit,
     const string&                   _mad_location):
         DriverManager(_mad_location),
-        Listener("Virtual Machine Manager"),
-        vm_limit(_vm_limit)
+        Listener("Virtual Machine Manager")
 {
     Nebula& nd = Nebula::instance();
 
@@ -152,6 +150,14 @@ int VirtualMachineManager::validate_raw(const Template * vmt, string& error_str)
         return 0;
     }
 
+    bool validate;
+    raw->vector_value("VALIDATE", validate, true);
+
+    if (!validate)
+    {
+        return 0;
+    }
+
     string value = raw->vector_value("TYPE");
     one_util::tolower(value);
 
@@ -165,9 +171,8 @@ int VirtualMachineManager::validate_raw(const Template * vmt, string& error_str)
 
     value = raw->vector_value("DATA");
 
-    return vmd->validate_raw(value, error_str);
 
-    return 0;
+    return vmd->validate_raw(value, error_str);
 }
 
 /* -------------------------------------------------------------------------- */

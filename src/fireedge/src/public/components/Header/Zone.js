@@ -13,80 +13,27 @@
 /* limitations under the License.                                             */
 /* -------------------------------------------------------------------------- */
 
-import React, { useState, useRef, Fragment } from 'react';
-import {
-  Button,
-  Popper,
-  Grow,
-  Paper,
-  MenuItem,
-  MenuList,
-  ClickAwayListener,
-  Divider
-} from '@material-ui/core';
+import React from 'react';
+
+import { MenuItem, MenuList } from '@material-ui/core';
 import LanguageIcon from '@material-ui/icons/Language';
 
-import { Translate } from 'client/components/HOC';
-import { SignOut, Groups } from 'client/constants';
+import { Tr } from 'client/components/HOC';
+import HeaderPopover from 'client/components/Header/Popover';
 
-const Zone = () => {
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef(null);
-  const { current } = anchorRef;
-
-  const handleToggle = () => {
-    setOpen(prevOpen => !prevOpen);
-  };
-
-  const handleClose = e => {
-    if (current && current.contains(e.target)) {
-      return;
-    }
-    setOpen(false);
-  };
-
-  return (
-    <Fragment>
-      <Button
-        ref={anchorRef}
-        color="inherit"
-        aria-controls={open ? 'menu-list-grow' : undefined}
-        aria-haspopup="true"
-        onClick={handleToggle}
-      >
-        <LanguageIcon />
-      </Button>
-      <Popper
-        open={open}
-        anchorEl={current}
-        role={undefined}
-        transition
-        disablePortal
-      >
-        {({ TransitionProps, placement }) => (
-          <Grow
-            {...TransitionProps}
-            style={{
-              transformOrigin:
-                placement === 'bottom' ? 'center top' : 'center bottom'
-            }}
-          >
-            <Paper>
-              <ClickAwayListener onClickAway={handleClose}>
-                <MenuList autoFocusItem={open} id="menu-list-grow">
-                  <MenuItem onClick={handleClose}>Zone</MenuItem>
-                </MenuList>
-              </ClickAwayListener>
-            </Paper>
-          </Grow>
-        )}
-      </Popper>
-    </Fragment>
-  );
-};
-
-Zone.propTypes = {};
-
-Zone.defaultProps = {};
+const Zone = React.memo(() => (
+  <HeaderPopover
+    id="zone-menu"
+    icon={<LanguageIcon />}
+    IconProps={{ 'data-cy': 'header-zone-button' }}
+    disablePadding
+  >
+    {({ handleClose }) => (
+      <MenuList>
+        <MenuItem onClick={handleClose}>{Tr('Zone')}</MenuItem>
+      </MenuList>
+    )}
+  </HeaderPopover>
+));
 
 export default Zone;

@@ -13,103 +13,82 @@
 /* limitations under the License.                                             */
 /* -------------------------------------------------------------------------- */
 
-import React, { useState } from 'react';
+import React from 'react';
+import clsx from 'clsx';
 import {
-  Grid,
   List,
-  ListItem,
-  ListItemText,
-  ExpansionPanel,
-  ExpansionPanelSummary,
-  ExpansionPanelDetails,
-  Divider
+  Drawer,
+  Divider,
+  Box,
+  IconButton,
+  useMediaQuery
 } from '@material-ui/core';
-import classnames from 'classnames';
-import { Link } from 'react-router-dom';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Menu as MenuIcon, Close as CloseIcon } from '@material-ui/icons';
+
+import useGeneral from 'client/hooks/useGeneral';
 import endpoints from 'client/router/endpoints';
 
-const Sidebar = () => {
-  const [expanded, setExpanded] = useState('');
+import sidebarStyles from 'client/components/Sidebar/styles';
+import SidebarLink from 'client/components/Sidebar/SidebarLink';
+import SidebarCollapseItem from 'client/components/Sidebar/SidebarCollapseItem';
+import Logo from 'client/icons/logo';
 
-  const handleChange = panel => (event, newExpanded) => {
-    setExpanded(newExpanded ? panel : false);
-  };
-
-  const routeElement = (title = '', { path = '/', menu = true }) =>
-    menu && (
-      <ListItem key={`menu-key-${title}`}>
-        <ListItemText
-          primary={
-            <Link
-              to={path}
-              className={classnames(
-                'link',
-                'MuiTypography-root',
-                'MuiLink-root',
-                'MuiLink-underlineHover',
-                'MuiTypography-colorPrimary'
-              )}
-            >
-              {title.replace('_', ' ')}
-            </Link>
-          }
-        />
-      </ListItem>
-    );
-
-  const routeElements = (title = '', routes = {}) => {
-    const internal = Object.entries(routes)?.map(
-      ([internalTitle, internalRoutes]) =>
-        internalRoutes.component && routeElement(internalTitle, internalRoutes)
-    );
-
-    return (
-      internal.some(components => components !== undefined) && (
-        <ExpansionPanel
-          square
-          expanded={expanded === title}
-          onChange={handleChange(title)}
-          key={`menu-key-${title}`}
-        >
-          <ExpansionPanelSummary
-            aria-controls="panel1d-content"
-            id="panel1d-header"
-            expandIcon={<ExpandMoreIcon />}
-            className={classnames('link')}
-          >
-            {title.replace('_', ' ')}
-          </ExpansionPanelSummary>
-          <ExpansionPanelDetails className={classnames('internalNav')}>
-            <List disablePadding style={{ width: '100%' }}>
-              {internal}
-            </List>
-          </ExpansionPanelDetails>
-        </ExpansionPanel>
+const Endpoints = React.memo(() =>
+  endpoints
+    ?.filter(({ authenticated, header = false }) => authenticated && !header)
+    ?.map((endpoint, index) =>
+      endpoint.routes ? (
+        <SidebarCollapseItem key={`item-${index}`} {...endpoint} />
+      ) : (
+        <SidebarLink key={`item-${index}`} {...endpoint} />
       )
-    );
-  };
+    )
+);
 
-  return (
-    <div className={classnames('menu')}>
-      <Grid container>
-        <Grid item className={classnames('logo-wrapper')}>
-          <img
-            className={classnames('logo')}
-            src="/static/logo.png"
-            alt="Opennebula"
+const Sidebar = () => {
+  const classes = sidebarStyles();
+  const { isFixMenu, fixMenu } = useGeneral();
+  const isUpLg = useMediaQuery(theme => theme.breakpoints.up('lg'));
+
+  const handleSwapMenu = () => fixMenu(!isFixMenu);
+
+  return React.useMemo(
+    () => (
+      <Drawer
+        variant={'permanent'}
+        className={clsx({ [classes.drawerFixed]: isFixMenu })}
+        classes={{
+          paper: clsx(classes.drawerPaper, {
+            [classes.drawerFixed]: isFixMenu
+          })
+        }}
+        anchor="left"
+        open={isFixMenu}
+      >
+        <Box item className={classes.header}>
+          <Logo
+            width="100%"
+            height={100}
+            withText
+            viewBox="0 0 640 640"
+            className={classes.svg}
           />
-        </Grid>
-      </Grid>
-      <Divider />
-      <List>
-        {Object.entries(endpoints)?.map(([title, routes]) =>
-          routes.component
-            ? routeElement(title, routes)
-            : routeElements(title, routes)
-        )}
-      </List>
-    </div>
+          <IconButton
+            color={isFixMenu ? 'primary' : 'default'}
+            onClick={handleSwapMenu}
+          >
+            {isUpLg ? <MenuIcon /> : <CloseIcon />}
+          </IconButton>
+        </Box>
+        <Divider />
+        <Box className={classes.menu}>
+          <List className={classes.list} disablePadding>
+            <Endpoints />
+          </List>
+        </Box>
+      </Drawer>
+    ),
+    [isFixMenu, fixMenu, isUpLg]
   );
 };
 

@@ -62,7 +62,7 @@ begin
     one_vm = VCenterDriver::VIHelper.one_item(OpenNebula::VirtualMachine, vm_id)
 
     if !drv_action.retrieve_xmlelements('USER_TEMPLATE/VCENTER_TAG').empty?
-        raise 'vShepre automation gems are not installed' unless REST_CLIENT
+        raise 'vSphere automation gems are not installed' unless REST_CLIENT
     end
 
     if deploy_id_valid?(deploy_id)
@@ -92,7 +92,7 @@ begin
         end
     end
 
-    if vm.is_powered_off?
+    if vm.powered_off?
         vm.sync(deploy)
         # Only mark the VM as running if we are deploying it for the first time
         set_running = !deploy_id_valid?(deploy_id)

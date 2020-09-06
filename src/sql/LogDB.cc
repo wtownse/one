@@ -677,11 +677,14 @@ int LogDB::purge_log()
 
     cb_info.unset_callback();
 
-    oss.str("");
-    oss << "Purging obsolete LogDB records: " << rc << " records purged. Log state: "
-        << maxmin_i[0] << "," << maxmin_i[1] << " - " << maxmin_e[0] << "," << maxmin_e[1];
+    if (maxmin_i.size() == 2 && maxmin_e.size() == 2)
+    {
+        oss.str("");
+        oss << "Purging obsolete LogDB records: " << rc << " records purged. Log state: "
+            << maxmin_i[0] << "," << maxmin_i[1] << " - " << maxmin_e[0] << "," << maxmin_e[1];
 
-    NebulaLog::log("DBM", Log::INFO, oss);
+        NebulaLog::log("DBM", Log::INFO, oss);
+    }
 
     /* ---------------------------------------------------------------------- */
     /* Federated records. Keep last log_retention federated records           */

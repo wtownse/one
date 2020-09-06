@@ -15,50 +15,54 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import classnames from 'classnames';
 
 import {
   AppBar,
   Toolbar,
-  IconButton,
   Typography,
-  LinearProgress
+  IconButton,
+  useMediaQuery
 } from '@material-ui/core';
 import MenuIcon from '@material-ui/icons/Menu';
 
+import useAuth from 'client/hooks/useAuth';
 import useGeneral from 'client/hooks/useGeneral';
-
-import User from './User';
-import Zone from './Zone';
+import User from 'client/components/Header/User';
+import Group from 'client/components/Header/Group';
+import Zone from 'client/components/Header/Zone';
+import headerStyles from 'client/components/Header/styles';
 
 const Header = ({ title }) => {
-  const { isLoading, isOpenMenu, openMenu } = useGeneral();
+  const { isOneAdmin } = useAuth();
+  const { isFixMenu, fixMenu } = useGeneral();
+  const classes = headerStyles();
+  const isUpLg = useMediaQuery(theme => theme.breakpoints.up('lg'));
 
-  return (
-    <AppBar position="fixed" className={classnames('header')} data-cy="header">
-      <Toolbar>
-        <IconButton
-          onClick={() => openMenu(!isOpenMenu)}
-          edge="start"
-          className=""
-          color="inherit"
-          aria-label="menu"
-        >
-          <MenuIcon />
-        </IconButton>
-        <Typography
-          variant="h6"
-          style={{ flexGrow: 1 }}
-          className={classnames('title')}
-          data-cy="header-title"
-        >
-          {title}
-        </Typography>
-        <User />
-        <Zone />
-      </Toolbar>
-      {isLoading && <LinearProgress />}
-    </AppBar>
+  const handleFixMenu = () => fixMenu(true);
+
+  return React.useMemo(
+    () => (
+      <AppBar position="absolute" data-cy="header">
+        <Toolbar>
+          {!isUpLg && (
+            <IconButton onClick={handleFixMenu} edge="start" color="inherit">
+              <MenuIcon />
+            </IconButton>
+          )}
+          <Typography
+            variant="h6"
+            className={classes.title}
+            data-cy="header-title"
+          >
+            {title}
+          </Typography>
+          <User />
+          {!isOneAdmin && <Group />}
+          <Zone />
+        </Toolbar>
+      </AppBar>
+    ),
+    [isFixMenu, fixMenu, isUpLg, isOneAdmin]
   );
 };
 

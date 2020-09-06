@@ -18,6 +18,7 @@ module.exports = {
   classInputInvalid: 'is-invalid',
   NotFound: 'Not found',
   SignIn: 'Sign In',
+  Next: 'Next',
   Language: 'Language',
   Username: 'Username',
   Password: 'Password',
@@ -25,14 +26,22 @@ module.exports = {
   Token2FA: '2FA Token',
   SignOut: 'Sign Out',
   jwtName: 'SunstoneToken',
+  filterPool: 'FilterPool',
   Submit: 'Submit',
-  Respose: 'Response',
+  Response: 'Response',
   by: {
-    text: 'Opennebula Systems',
-    url: 'https://opennebula.org/'
+    text: 'Opennebula',
+    url: 'https://opennebula.io/'
   },
   endpointsRoutes: {
     login: '/api/auth/',
     userInfo: '/api/user/info'
+  },
+  ONEADMIN_ID: '0',
+  FILTER_POOL: {
+    PRIMARY_GROUP_RESOURCES: '-4',
+    USER_RESOURCES: '-3',
+    ALL_RESOURCES: '-2',
+    USER_GROUPS_RESOURCES: '-1'
   }
 };

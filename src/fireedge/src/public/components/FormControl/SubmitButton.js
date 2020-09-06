@@ -1,8 +1,9 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { makeStyles, CircularProgress, Button } from '@material-ui/core';
 
-import { Translate } from 'client/components/HOC';
+import { Tr } from 'client/components/HOC';
 import * as CONSTANT from 'client/constants';
 
 const useStyles = makeStyles(theme => ({
@@ -12,7 +13,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function ButtonSubmit({ isSubmitting, label, ...rest }) {
+const ButtonSubmit = ({ isSubmitting, label, ...rest }) => {
   const classes = useStyles();
 
   return (
@@ -25,7 +26,19 @@ export default function ButtonSubmit({ isSubmitting, label, ...rest }) {
       {...rest}
     >
       {isSubmitting && <CircularProgress size={24} />}
-      {!isSubmitting && (label ?? <Translate word={CONSTANT.default.Submit} />)}
+      {!isSubmitting && Tr(label)}
     </Button>
   );
-}
+};
+
+ButtonSubmit.propTypes = {
+  isSubmitting: PropTypes.bool,
+  label: PropTypes.string
+};
+
+ButtonSubmit.defaultProps = {
+  isSubmitting: false,
+  label: CONSTANT.default.Submit
+};
+
+export default ButtonSubmit;

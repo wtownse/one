@@ -145,11 +145,11 @@ namespace one_db
     /* ---------------------------------------------------------------------- */
     const char * acl_table = "acl";
 
-    const char * acl_db_names = "oid, user, resource, rights, zone";
+    const char * acl_db_names = "oid, userset, resource, rights, zone";
 
     const char * acl_db_bootstrap = "CREATE TABLE IF NOT EXISTS "
-        "acl (oid INT PRIMARY KEY, user BIGINT, resource BIGINT, "
-        "rights BIGINT, zone BIGINT, UNIQUE(user, resource, rights, zone))";
+        "acl (oid INT PRIMARY KEY, userset BIGINT, resource BIGINT, "
+        "rights BIGINT, zone BIGINT, UNIQUE(userset, resource, rights, zone))";
 
     /* ---------------------------------------------------------------------- */
     /* Datastore tables                                                       */
